@@ -10,6 +10,10 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
+const (
+	defaultName = "grpcfuse"
+)
+
 type fileSystem struct {
 	fuse.RawFileSystem
 
@@ -24,6 +28,15 @@ func NewFileSystem(client pb.RawFileSystemClient, opts ...grpc.CallOption) *file
 		client:        client,
 		opts:          opts,
 	}
+}
+
+func (fs *fileSystem) String() string {
+	res, err := fs.client.String(context.TODO(), &pb.StringRequest{}, fs.opts...)
+	if err != nil {
+		log.Errorf("String: %v", err)
+		return defaultName
+	}
+	return res.Value
 }
 
 func (fs *fileSystem) Lookup(cancel <-chan struct{}, header *fuse.InHeader, name string, out *fuse.EntryOut) (status fuse.Status) {
