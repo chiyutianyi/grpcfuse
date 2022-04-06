@@ -13,8 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
+	"github.com/chiyutianyi/grpcfuse/fuse2grpc"
 	"github.com/chiyutianyi/grpcfuse/pb"
-	"github.com/chiyutianyi/grpcfuse/pkg/server/rawfilesystem"
 )
 
 func main() {
@@ -67,7 +67,7 @@ func main() {
 
 	rawFS := fs.NewNodeFS(loopbackRoot, opts)
 
-	srv := rawfilesystem.NewServer(rawFS)
+	srv := fuse2grpc.NewServer(rawFS)
 
 	pb.RegisterRawFileSystemServer(s, srv)
 	go s.Serve(l)

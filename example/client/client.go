@@ -11,7 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/chiyutianyi/grpcfuse/grpcfuse"
+	"github.com/chiyutianyi/grpcfuse/grpc2fuse"
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
@@ -30,7 +30,7 @@ func main() {
 		log.Fatal(err)
 	}
 	cli := pb.NewRawFileSystemClient(conn)
-	fs := grpcfuse.NewFileSystem(cli)
+	fs := grpc2fuse.NewFileSystem(cli)
 
 	var opt fuse.MountOptions
 	opt.FsName = "GrpcFS"

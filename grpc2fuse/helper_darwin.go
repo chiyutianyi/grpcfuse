@@ -1,4 +1,4 @@
-package grpcfuse
+package grpc2fuse
 
 import (
 	"github.com/hanwen/go-fuse/v2/fuse"

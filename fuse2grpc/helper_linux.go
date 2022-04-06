@@ -1,4 +1,4 @@
-package rawfilesystem
+package fuse2grpc
 
 import (
 	"github.com/chiyutianyi/grpcfuse/pb"
@@ -23,7 +23,8 @@ func toPbAttr(in *fuse.Attr) *pb.Attr {
 			Uid: in.Uid,
 			Gid: in.Gid,
 		},
-		Rdev:  in.Rdev,
-		Flags: in.Flags_,
+		Rdev:    in.Rdev,
+		Blksize: in.Blksize,
+		Padding: in.Padding,
 	}
 }

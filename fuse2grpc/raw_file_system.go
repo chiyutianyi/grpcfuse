@@ -1,4 +1,4 @@
-package rawfilesystem
+package fuse2grpc
 
 import (
 	"context"

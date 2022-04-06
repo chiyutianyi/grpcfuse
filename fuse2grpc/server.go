@@ -1,4 +1,4 @@
-package rawfilesystem
+package fuse2grpc
 
 import (
 	"github.com/hanwen/go-fuse/v2/fuse"

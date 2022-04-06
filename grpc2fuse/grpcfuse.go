@@ -1,4 +1,4 @@
-package grpcfuse
+package grpc2fuse
 
 import (
 	"context"
