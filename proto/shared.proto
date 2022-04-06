@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package pb;
+
+import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+message Status {
+	int32 Code = 1 [(gogoproto.casttype)="github.com/hanwen/go-fuse/fuse.Status"];
+}
+
+message Owner {
+  uint32 uid = 1;
+  uint32 gid = 2;
+}
+
+message Caller {
+  Owner owner = 1;
+  uint32 pid = 2;
+}
+
+message InHeader {
+  uint32 Length = 1;
+  uint32 Opcode = 2;
+  uint64 Unique = 3;
+  uint64 NodeId = 4;
+  Caller Caller = 5;
+  uint32 Padding = 6;
+}
+
+message Attr {
+  uint64 ino = 1;
+  uint64 size = 2;
+  uint64 blocks = 3;
+  uint64 atime = 4;
+  uint64 mtime = 5;
+  uint64 ctime = 6;
+  uint32 atimensec = 7;
+  uint32 mtimensec = 8;
+  uint32 ctimensec = 9;
+  uint32 mode = 10;
+  uint32 nlink = 11;
+  Owner owner = 12;
+  uint32 rdev = 13;
+  // OS X
+  uint32 flags = 14;
+  // linux
+  uint32 blksize = 15;
+	uint32 padding = 16;
+}
+
+message AttrOut {
+  uint64 attr_valid = 1;
+  uint64 attr_valid_nsec = 2;
+  uint32 dummy = 3;
+  Attr attr = 4;
+}
+
+message EntryOut {
+  uint64 node_id = 1;
+  uint64 generation = 2;
+  uint64 entry_valid = 3;
+  uint64 attr_valid = 4;
+  uint64 entry_valid_nsec = 5;
+  uint64 attr_valid_nsec = 6;
+  Attr attr = 7;
+}
+
+message OpenIn {
+  InHeader header = 1;
+  uint32 flags = 3;
+  uint32 mode = 4;
+}
+
+message OpenOut {
+  uint64 fh = 1;
+  uint32 open_flags = 2;
+  uint32 padding = 3;
+}
+
+message ReadIn {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint64 offset = 3;
+  uint32 size = 4;
+  uint32 read_flags = 5;
+}
+
+message FileLock {
+  uint64 start = 1;
+  uint64 end = 2;
+  uint32 type = 3;
+  uint32 pid = 4;
+}
+
+message DirEntry {
+  uint32 mode = 1;
+  string name = 2;
+  uint64 ino = 3;
+}

@@ -1,0 +1,466 @@
+syntax = "proto3";
+
+package pb;
+
+import "shared.proto";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+// RawFileSystem  is an interface close to the FUSE wire protocol.
+// 
+// See https://github.com/hanwen/go-fuse/blob/master/fuse/api.go
+service RawFileSystem {
+  rpc String(StringRequest) returns (StringResponse) {}
+  // Lookup is called by the kernel when the VFS wants to know
+  // about a file inside a directory. Many lookup calls can
+  // occur in parallel, but only one call happens for each (dir,
+  // name) pair.
+  rpc Lookup(LookupRequest) returns (LookupResponse) {}
+  // Forget is called when the kernel discards entries from its
+  // dentry cache. This happens on unmount, and when the kernel
+  // is short on memory. Since it is not guaranteed to occur at
+  // any moment, and since there is no return value, Forget
+  // should not do I/O, as there is no channel to report back
+  // I/O errors.
+  rpc Forget(ForgetRequest) returns (google.protobuf.Empty) {}
+
+  // Atributes
+  rpc GetAttr(GetAttrRequest) returns (GetAttrResponse) {}
+  rpc SetAttr(SetAttrRequest) returns (SetAttrResponse) {}
+
+  // Modifying structure.
+  rpc Mknod(MknodRequest) returns (MknodResponse) {}
+  rpc Mkdir(MkdirRequest) returns (MkdirResponse) {}
+  rpc Unlink(UnlinkRequest) returns (UnlinkResponse) {}
+  rpc Rmdir(RmdirRequest) returns (RmdirResponse) {}
+  rpc Rename(RenameRequest) returns (RenameResponse) {}
+  rpc Link(LinkRequest) returns (LinkResponse) {}
+
+  rpc Symlink(SymlinkRequest) returns (SymlinkResponse) {}
+  rpc Readlink(ReadlinkRequest) returns (ReadlinkResponse) {}
+  rpc Access(AccessRequest) returns (AccessResponse) {}
+
+  // Extended attributes.
+
+  // GetXAttr reads an extended attribute, and should return the
+  // number of bytes. If the buffer is too small, return ERANGE,
+  // with the required buffer size.
+  rpc GetXAttr(GetXAttrRequest) returns (GetXAttrResponse) {}
+
+  // ListXAttr lists extended attributes as '\0' delimited byte
+  // slice, and return the number of bytes. If the buffer is too
+  // small, return ERANGE, with the required buffer size.
+  rpc ListXAttr(ListXAttrRequest) returns (ListXAttrResponse) {}
+
+  // SetAttr writes an extended attribute.
+  rpc SetXAttr(SetXAttrRequest) returns (SetXAttrResponse) {}
+
+  // RemoveXAttr removes an extended attribute.
+  rpc RemoveXAttr(RemoveXAttrRequest) returns (RemoveXAttrResponse) {}
+
+  // File handling.
+  rpc Create(CreateRequest) returns (CreateResponse) {}
+  rpc Open(OpenRequest) returns (OpenResponse) {}
+  rpc Read(ReadRequest) returns (stream ReadResponse) {}
+  rpc LSeek(LSeekRequest) returns (LSeekResponse) {}
+
+  // File locking
+  rpc GetLk(LkRequest) returns (GetLkResponse) {}
+  rpc SetLk(LkRequest) returns (SetLkResponse) {}
+  rpc SetLkw(LkRequest) returns (SetLkResponse) {}
+
+  rpc Release(ReleaseRequest) returns (google.protobuf.Empty) {}
+  rpc Write(WriteRequest) returns (WriteResponse) {}
+  rpc CopyFileRange(CopyFileRangeRequest) returns (CopyFileRangeResponse) {}
+
+  rpc Flush(FlushRequest) returns (FlushResponse) {}
+  rpc Fsync(FsyncRequest) returns (FsyncResponse) {}
+  rpc Fallocate(FallocateRequest) returns (FallocateResponse) {}
+
+  // Directory handling
+  rpc OpenDir(OpenDirRequest) returns (OpenDirResponse) {}
+  rpc ReadDir(ReadDirRequest) returns (stream ReadDirResponse) {}
+  rpc ReadDirPlus(ReadDirRequest) returns (stream ReadDirResponse) {}
+  rpc ReleaseDir(ReleaseRequest) returns (google.protobuf.Empty) {}
+  rpc FsyncDir(FsyncRequest) returns (FsyncResponse) {}
+
+  rpc StatFs(StatfsRequest) returns (StatfsResponse) {}
+}
+
+
+message StringRequest {
+}
+
+message StringResponse {
+  string value = 1;
+}
+
+message LookupRequest {
+  InHeader header = 1;
+  string name = 2;
+}
+
+message LookupResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+}
+
+message ForgetRequest {
+  uint64 nodeid = 1;
+  uint64 nlookup = 2;
+}
+
+message GetAttrRequest {
+  InHeader header = 1;
+}
+
+message GetAttrResponse {
+  Status status = 1;
+  AttrOut attr_out = 2;
+}
+
+message SetAttrRequest {
+  InHeader header = 1;
+  uint32 valid = 2;
+  uint32 padding = 3;
+  uint64 fh = 4;
+  uint64 size = 5;
+  uint64 lock_owner = 6;
+  uint64 atime = 7;
+  uint64 mtime = 8;
+  uint64 ctime = 9;
+  uint32 atimensec = 10;
+  uint32 mtimensec = 11;
+  uint32 ctimensec = 12;
+  uint32 mode = 13;
+  uint32 unused4 = 14;
+  Owner owner = 15;
+  uint32 unused5 = 16;
+}
+
+message SetAttrResponse {
+  Status status = 1;
+  AttrOut attr_out = 2;
+}
+
+message MknodRequest {
+  InHeader header = 1;
+  string name = 2;
+  uint32 mode = 3;
+  uint32 rdev = 4;
+  // for linux
+  uint32 umask = 5;
+}
+
+message MknodResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+}
+
+message MkdirRequest {
+  InHeader header = 1;
+  string name = 2;
+  uint32 mode = 3;
+  uint32 umask = 4;
+}
+
+message MkdirResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+}
+
+message UnlinkRequest {
+  InHeader header = 1;
+  string name = 2;
+}
+
+message UnlinkResponse {
+  Status status = 1;
+}
+
+message RmdirRequest {
+  InHeader header = 1;
+  string name = 2;
+}
+
+message RmdirResponse {
+  Status status = 1;
+}
+
+message RenameRequest {
+  InHeader header = 1;
+  string old_name = 2;
+  string new_name = 3;
+  uint64 newdir = 4;
+  uint32 flags = 5;
+  uint32 padding = 6;
+}
+
+message RenameResponse {
+  Status status = 1;
+}
+
+message LinkRequest {
+  InHeader header = 1;
+  uint64 oldnodeid = 2;
+  string filename = 3;
+}
+
+message LinkResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+}
+
+message SymlinkRequest {
+  InHeader header = 1;
+  string pointed_to = 2;
+  string link_name = 3;
+}
+
+message SymlinkResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+}
+
+message ReadlinkRequest {
+  InHeader header = 1;
+}
+
+message ReadlinkResponse {
+  Status status = 1;
+  string out = 2;
+}
+
+message AccessRequest {
+  InHeader header = 1;
+  uint32 mask = 2;
+  uint32 padding = 3;
+}
+
+message AccessResponse {
+  Status status = 1;
+}
+
+message GetXAttrRequest {
+  InHeader header = 1;
+  string attr = 2;
+  bytes dest = 3;
+}
+
+message GetXAttrResponse {
+  Status status = 1;
+  uint32 size = 2;
+}
+
+message ListXAttrRequest {
+  InHeader header = 1;
+  bytes dest = 2;
+}
+
+message ListXAttrResponse {
+  Status status = 1;
+  uint32 size = 2;
+}
+
+message SetXAttrRequest {
+  InHeader header = 1;
+  string attr = 2;
+  bytes data = 3;
+  uint32 size = 4;
+  uint32 flags = 5;
+  uint32 position = 6;
+  uint32 padding = 7;
+}
+
+message SetXAttrResponse {
+  Status status = 1;
+}
+
+message RemoveXAttrRequest {
+  InHeader header = 1;
+  string attr = 2;
+}
+
+message RemoveXAttrResponse {
+  Status status = 1;
+}
+
+message CreateRequest {
+  InHeader header = 1;
+  string name = 2;
+  uint32 flags = 3;
+  uint32 mode = 4;
+  // for linux
+  uint32 umask = 5;
+  uint32 padding = 6;
+}
+
+message CreateResponse {
+  Status status = 1;
+  EntryOut entry_out = 2;
+  OpenOut open_out = 3;
+}
+
+message OpenRequest {
+  OpenIn open_in = 1;
+}
+
+message OpenResponse {
+  Status status = 1;
+  OpenOut open_out = 2;
+}
+
+message ReadRequest {
+  ReadIn read_in = 1;
+}
+
+message ReadResponse {
+  Status status = 1;
+  bytes buffer = 2;
+}
+
+message LSeekRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint64 offset = 3;
+  uint32 whence = 4;
+  uint32 padding = 5;
+}
+
+message LSeekResponse {
+  Status status = 1;
+  uint64 offset = 2;
+}
+
+message LkRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint64 owner = 3;
+  FileLock lk = 4;
+  uint32 lk_flags = 5;
+  uint32 padding = 6;
+}
+
+message GetLkResponse {
+  Status status = 1;
+  FileLock lk = 2;
+}
+
+message SetLkResponse {
+  Status status = 1;
+}
+
+message ReleaseRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint32 flags = 3;
+  uint32 release_flags = 4;
+  uint64 lock_owner = 5;
+}
+
+message WriteRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint64 offset = 3;
+  bytes data = 4;
+  uint32 size = 5;
+  uint32 write_flags = 6;
+  uint64 lock_owner = 7;
+  uint32 flags = 8;
+  uint32 padding = 9;
+}
+
+message WriteResponse {
+  Status status = 1;
+  uint32 written = 2;
+}
+
+message CopyFileRangeRequest {
+  InHeader header = 1;
+  uint64 fh_in = 2;
+  uint64 off_in = 3;
+  uint64 node_id_out = 4;
+  uint64 fh_out = 5;
+  uint64 off_out = 6;
+  uint64 len = 7;
+  uint64 flags = 8;
+}
+
+message CopyFileRangeResponse {
+  Status status = 1;
+  uint64 written = 2;
+}
+
+message FlushRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint32 unused = 3;
+  uint32 padding = 4;
+  uint64 lock_owner = 5;
+}
+
+message FlushResponse {
+  Status status = 1;
+}
+
+message FsyncRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint32 fsync_flags = 3;
+  uint32 padding = 4;
+}
+
+message FsyncResponse {
+  Status status = 1;
+}
+
+message FallocateRequest {
+  InHeader header = 1;
+  uint64 fh = 2;
+  uint64 offset = 3;
+  uint64 length = 4;
+  uint32 mode = 5;
+  uint32 padding = 6;
+}
+
+message FallocateResponse {
+  Status status = 1;
+}
+
+message OpenDirRequest {
+  OpenIn open_in = 1;
+
+}
+
+message OpenDirResponse {
+  Status status = 1;
+  OpenOut open_out = 2;
+}
+
+message ReadDirRequest {
+  ReadIn read_in = 1;
+}
+
+message ReadDirResponse {
+  Status status = 1;
+  repeated DirEntry entries = 2;
+}
+
+message StatfsRequest {
+  InHeader input = 1;
+}
+
+message StatfsResponse {
+  Status status = 1;
+  uint64 blocks = 2;
+  uint64 bfree = 3;
+  uint64 bavail = 4;
+  uint64 files = 5;
+  uint64 ffree = 6;
+  uint32 bsize = 7;
+  uint32 namelen = 8;
+  uint32 frsize = 9;
+  uint32 padding = 10;
+  repeated uint32 spare = 11;
+}
