@@ -2,6 +2,7 @@ package grpc2fuse
 
 import (
 	"context"
+	"io"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	log "github.com/sirupsen/logrus"
@@ -123,6 +124,223 @@ func (fs *fileSystem) SetAttr(cancel <-chan struct{}, in *fuse.SetAttrIn, out *f
 	return 0
 }
 
+func (fs *fileSystem) Readlink(cancel <-chan struct{}, header *fuse.InHeader) (out []byte, code fuse.Status) {
+	ctx := newContext(cancel, header)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.Readlink(ctx, &pb.ReadlinkRequest{
+		Header: toPbHeader(header),
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("Access: %v", err)
+		return nil, fuse.EIO
+	}
+
+	if res.Status.GetCode() != 0 {
+		return nil, fuse.Status(res.Status.GetCode())
+	}
+
+	return res.GetOut(), fuse.OK
+}
+
+func (fs *fileSystem) Access(cancel <-chan struct{}, input *fuse.AccessIn) (code fuse.Status) {
+	ctx := newContext(cancel, &input.InHeader)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.Access(ctx, &pb.AccessRequest{
+		Header:  toPbHeader(&input.InHeader),
+		Mask:    input.Mask,
+		Padding: input.Padding,
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("Access: %v", err)
+		return fuse.EIO
+	}
+
+	return fuse.Status(res.Status.GetCode())
+}
+
+func (fs *fileSystem) Open(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.Open(ctx, &pb.OpenRequest{
+		OpenIn: &pb.OpenIn{
+			Header: toPbHeader(&in.InHeader),
+			Flags:  in.Flags,
+			Mode:   in.Mode,
+		},
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("Open: %v", err)
+		return fuse.EIO
+	}
+
+	if res.Status.GetCode() != 0 {
+		return fuse.Status(res.Status.GetCode())
+	}
+
+	out.Fh = res.OpenOut.Fh
+	out.OpenFlags = res.OpenOut.OpenFlags
+	out.Padding = res.OpenOut.Padding
+	return fuse.OK
+}
+
+func (fs *fileSystem) Release(cancel <-chan struct{}, in *fuse.ReleaseIn) {
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	if _, err := fs.client.Release(ctx, &pb.ReleaseRequest{
+		Header:       toPbHeader(&in.InHeader),
+		Fh:           in.Fh,
+		Flags:        in.Flags,
+		ReleaseFlags: in.ReleaseFlags,
+		LockOwner:    in.LockOwner,
+	}, fs.opts...); err != nil {
+		log.Errorf("Release: %v", err)
+	}
+}
+
+func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.OpenDir(ctx, &pb.OpenDirRequest{
+		OpenIn: &pb.OpenIn{
+			Header: toPbHeader(&in.InHeader),
+			Flags:  in.Flags,
+			Mode:   in.Mode,
+		},
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("OpenDir: %v", err)
+		return fuse.EIO
+	}
+
+	if res.Status.GetCode() != 0 {
+		return fuse.Status(res.Status.GetCode())
+	}
+
+	out.Fh = res.OpenOut.Fh
+	out.OpenFlags = res.OpenOut.OpenFlags
+	out.Padding = res.OpenOut.Padding
+	return fuse.OK
+}
+
+func (fs *fileSystem) doReadDir(
+	cancel <-chan struct{},
+	in *fuse.ReadIn,
+	out *fuse.DirEntryList,
+	reader func(ctx context.Context, in *pb.ReadDirRequest, opts ...grpc.CallOption) (pb.RawFileSystem_ReadDirClient, error),
+	funcName string,
+) fuse.Status {
+	var de fuse.DirEntry
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	stream, err := reader(ctx, &pb.ReadDirRequest{
+		ReadIn: &pb.ReadIn{
+			Header:    toPbHeader(&in.InHeader),
+			Fh:        in.Fh,
+			ReadFlags: in.ReadFlags,
+			Offset:    in.Offset,
+			Size:      in.Size,
+		},
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("%s: %v", funcName, err)
+		return fuse.EIO
+	}
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Errorf("%s: %v", funcName, err)
+			return fuse.EIO
+		}
+		if res.Status.GetCode() != 0 {
+			return fuse.Status(res.Status.GetCode())
+		}
+		for _, e := range res.Entries {
+			de.Ino = e.Ino
+			de.Name = string(e.Name)
+			de.Mode = e.Mode
+			if !out.AddDirEntry(de) {
+				break
+			}
+		}
+	}
+	return fuse.OK
+}
+
+func (fs *fileSystem) ReadDir(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
+	return fs.doReadDir(cancel, in, out, fs.client.ReadDir, "ReadDir")
+}
+
+func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
+	var de fuse.DirEntry
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	stream, err := fs.client.ReadDirPlus(ctx, &pb.ReadDirRequest{
+		ReadIn: &pb.ReadIn{
+			Header:    toPbHeader(&in.InHeader),
+			Fh:        in.Fh,
+			ReadFlags: in.ReadFlags,
+			Offset:    in.Offset,
+			Size:      in.Size,
+		},
+	}, fs.opts...)
+
+	if err != nil {
+		log.Errorf("ReadDirPlus: %v", err)
+		return fuse.EIO
+	}
+
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Errorf("ReadDirPlus: %v", err)
+			return fuse.EIO
+		}
+		if res.Status.GetCode() != 0 {
+			return fuse.Status(res.Status.GetCode())
+		}
+		for _, e := range res.Entries {
+			de.Ino = e.Ino
+			de.Name = string(e.Name)
+			de.Mode = e.Mode
+			if !out.AddDirEntry(de) {
+				break
+			}
+		}
+	}
+	return fuse.OK
+}
+
+func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
+	if _, err := fs.client.ReleaseDir(context.TODO(), &pb.ReleaseRequest{
+		Header:       toPbHeader(&in.InHeader),
+		Fh:           in.Fh,
+		Flags:        in.Flags,
+		ReleaseFlags: in.ReleaseFlags,
+		LockOwner:    in.LockOwner,
+	}, fs.opts...); err != nil {
+		log.Errorf("ReleaseDir: %v", err)
+	}
+}
+
 func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
 	ctx := newContext(cancel, in)
 	defer releaseContext(ctx)
@@ -146,7 +364,7 @@ func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fus
 	out.Files = res.Files
 	out.Ffree = res.Ffree
 	out.Bsize = res.Bsize
-	out.NameLen = res.Namelen
+	out.NameLen = res.NameLen
 	out.Frsize = res.Frsize
 	out.Padding = res.Padding
 	//TODO out.Spare = res.Spare

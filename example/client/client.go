@@ -13,14 +13,20 @@ import (
 
 	"github.com/chiyutianyi/grpcfuse/grpc2fuse"
 	"github.com/chiyutianyi/grpcfuse/pb"
+	"github.com/chiyutianyi/grpcfuse/pkg/utils"
 )
 
 func main() {
+	debug := flag.Bool("debug", false, "print debugging messages.")
+	other := flag.Bool("allow-other", false, "mount with -o allowother.")
+	ro := flag.Bool("ro", false, "mount read-only")
+	loggerLevel := flag.String("logger-level", "info", "log level")
 	flag.Parse()
 	if flag.NArg() < 2 {
 		log.Fatal("Usage: %s <mountpath> <fuseserver>")
 	}
 
+	log.SetLevel(utils.GetLogLevel(*loggerLevel))
 	mp := flag.Arg(0)
 	fuseServer := flag.Arg(1)
 
@@ -42,17 +48,21 @@ func main() {
 	opt.MaxWrite = 1 << 20
 	opt.MaxReadAhead = 1 << 20
 	opt.DirectMount = true
-	opt.AllowOther = os.Getuid() == 0
+	opt.AllowOther = *other
+	opt.Debug = *debug
 	opt.Options = append(opt.Options, "default_permissions")
 	if runtime.GOOS == "darwin" {
 		opt.Options = append(opt.Options, "fssubtype=grpcfs")
 		opt.Options = append(opt.Options, "volname=grpcfs")
 		opt.Options = append(opt.Options, "daemon_timeout=60", "iosize=65536", "novncache")
 	}
+	if *ro {
+		opt.Options = append(opt.Options, "ro")
+	}
 
 	srv, err := fuse.NewServer(fs, mp, &opt)
 	if err != nil {
-		log.Fatalf("new fuse server: %v", err)
+		log.Fatalf("New fuse server: %v", err)
 	}
 
 	go srv.Serve()
@@ -62,6 +72,11 @@ func main() {
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM, syscall.SIGINT, syscall.SIGHUP)
 	for range sigCh {
 		err := srv.Unmount()
-		log.Fatalf("unmount: %v", err)
+		if err != nil {
+			log.Fatalf("Unmount: %v", err)
+		} else {
+			log.Info("Unmounted")
+			return
+		}
 	}
 }

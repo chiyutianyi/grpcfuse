@@ -229,7 +229,7 @@ message ReadlinkRequest {
 
 message ReadlinkResponse {
   Status status = 1;
-  string out = 2;
+  bytes out = 2;
 }
 
 message AccessRequest {
@@ -459,7 +459,7 @@ message StatfsResponse {
   uint64 files = 5;
   uint64 ffree = 6;
   uint32 bsize = 7;
-  uint32 namelen = 8;
+  uint32 nameLen = 8;
   uint32 frsize = 9;
   uint32 padding = 10;
   repeated uint32 spare = 11;

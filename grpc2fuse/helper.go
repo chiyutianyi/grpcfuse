@@ -1,8 +1,9 @@
 package grpc2fuse
 
 import (
-	"github.com/chiyutianyi/grpcfuse/pb"
 	"github.com/hanwen/go-fuse/v2/fuse"
+
+	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
 func toPbHeader(header *fuse.InHeader) *pb.InHeader {
@@ -46,11 +47,17 @@ func toFuseAttr(out *fuse.Attr, in *pb.Attr) {
 }
 
 func toFuseEntryOut(out *fuse.EntryOut, in *pb.EntryOut) {
-	out.Ino = in.NodeId
+	out.NodeId = in.NodeId
 	out.Generation = in.Generation
+	out.AttrValid = in.AttrValid
+	out.AttrValidNsec = in.AttrValidNsec
+	out.EntryValid = in.EntryValid
+	out.EntryValidNsec = in.EntryValidNsec
 	toFuseAttr(&out.Attr, in.Attr)
 }
 
 func toFuseAttrOut(out *fuse.AttrOut, in *pb.AttrOut) {
+	out.AttrValid = in.AttrValid
+	out.AttrValidNsec = uint32(in.AttrValidNsec)
 	toFuseAttr(&out.Attr, in.Attr)
 }

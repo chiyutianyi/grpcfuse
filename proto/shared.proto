@@ -50,7 +50,7 @@ message Attr {
 
 message AttrOut {
   uint64 attr_valid = 1;
-  uint64 attr_valid_nsec = 2;
+  uint32 attr_valid_nsec = 2;
   uint32 dummy = 3;
   Attr attr = 4;
 }
@@ -60,8 +60,8 @@ message EntryOut {
   uint64 generation = 2;
   uint64 entry_valid = 3;
   uint64 attr_valid = 4;
-  uint64 entry_valid_nsec = 5;
-  uint64 attr_valid_nsec = 6;
+  uint32 entry_valid_nsec = 5;
+  uint32 attr_valid_nsec = 6;
   Attr attr = 7;
 }
 
@@ -94,6 +94,6 @@ message FileLock {
 
 message DirEntry {
   uint32 mode = 1;
-  string name = 2;
-  uint64 ino = 3;
+  uint64 ino = 2;
+  bytes name = 3;
 }
