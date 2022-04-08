@@ -218,33 +218,3 @@ func (fs *fileSystem) Release(cancel <-chan struct{}, in *fuse.ReleaseIn) {
 		log.Errorf("Release: %v", err)
 	}
 }
-
-func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
-	ctx := newContext(cancel, in)
-	defer releaseContext(ctx)
-
-	res, err := fs.client.StatFs(ctx, &pb.StatfsRequest{
-		Input: toPbHeader(in),
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("SetAttr: %v", err)
-		return fuse.EIO
-	}
-
-	if res.Status.GetCode() != 0 {
-		return fuse.Status(res.Status.GetCode())
-	}
-
-	out.Blocks = res.Blocks
-	out.Bfree = res.Bfree
-	out.Bavail = res.Bavail
-	out.Files = res.Files
-	out.Ffree = res.Ffree
-	out.Bsize = res.Bsize
-	out.NameLen = res.NameLen
-	out.Frsize = res.Frsize
-	out.Padding = res.Padding
-	//TODO out.Spare = res.Spare
-	return fuse.OK
-}
