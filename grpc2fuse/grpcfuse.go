@@ -158,21 +158,3 @@ func (fs *fileSystem) Readlink(cancel <-chan struct{}, header *fuse.InHeader) (o
 
 	return res.GetOut(), fuse.OK
 }
-
-func (fs *fileSystem) Access(cancel <-chan struct{}, input *fuse.AccessIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
-
-	res, err := fs.client.Access(ctx, &pb.AccessRequest{
-		Header:  toPbHeader(&input.InHeader),
-		Mask:    input.Mask,
-		Padding: input.Padding,
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("Access: %v", err)
-		return fuse.EIO
-	}
-
-	return fuse.Status(res.Status.GetCode())
-}
