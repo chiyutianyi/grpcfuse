@@ -108,6 +108,7 @@ func (s *server) GetAttr(ctx context.Context, req *pb.GetAttrRequest) (*pb.GetAt
 		Status: &pb.Status{Code: 0},
 	}, nil
 }
+
 func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAttrResponse, error) {
 	var (
 		out    fuse.AttrOut
@@ -160,21 +161,7 @@ func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAt
 		Status: &pb.Status{Code: 0},
 	}, nil
 }
-func (s *server) Mknod(context.Context, *pb.MknodRequest) (*pb.MknodResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Mknod not implemented")
-}
-func (s *server) Mkdir(context.Context, *pb.MkdirRequest) (*pb.MkdirResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Mkdir not implemented")
-}
-func (s *server) Unlink(context.Context, *pb.UnlinkRequest) (*pb.UnlinkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Unlink not implemented")
-}
-func (s *server) Rmdir(context.Context, *pb.RmdirRequest) (*pb.RmdirResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Rmdir not implemented")
-}
-func (s *server) Rename(context.Context, *pb.RenameRequest) (*pb.RenameResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Rename not implemented")
-}
+
 func (s *server) Link(context.Context, *pb.LinkRequest) (*pb.LinkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Link not implemented")
 }

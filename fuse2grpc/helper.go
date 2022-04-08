@@ -33,6 +33,18 @@ func toFuseInHeader(in *pb.InHeader, out *fuse.InHeader) {
 	out.Padding = in.Padding
 }
 
+func toPbEntryOut(in *fuse.EntryOut) *pb.EntryOut {
+	return &pb.EntryOut{
+		NodeId:         in.NodeId,
+		Generation:     in.Generation,
+		EntryValid:     in.EntryValid,
+		AttrValid:      in.AttrValid,
+		EntryValidNsec: in.EntryValidNsec,
+		AttrValidNsec:  in.AttrValidNsec,
+		Attr:           toPbAttr(&in.Attr),
+	}
+}
+
 // modeToType converts a file *type* (as used in _Dirent.Typ)
 // to a file *mode* (as used in syscall.Stat_t.Mode).
 func typeToMode(typ uint32) uint32 {
