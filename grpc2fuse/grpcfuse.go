@@ -55,25 +55,6 @@ func (fs *fileSystem) String() string {
 	return res.Value
 }
 
-func (fs *fileSystem) Lookup(cancel <-chan struct{}, header *fuse.InHeader, name string, out *fuse.EntryOut) (status fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
-
-	res, err := fs.client.Lookup(ctx, &pb.LookupRequest{
-		Header: toPbHeader(header),
-		Name:   name,
-	}, fs.opts...)
-	if err != nil {
-		log.Errorf("Lookup: %v", err)
-		return fuse.EIO
-	}
-	if res.Status.GetCode() != 0 {
-		return fuse.Status(res.Status.GetCode())
-	}
-	toFuseEntryOut(out, res.EntryOut)
-	return fuse.OK
-}
-
 func (fs *fileSystem) Forget(nodeid, nlookup uint64) {
 	_, err := fs.client.Forget(context.TODO(), &pb.ForgetRequest{Nodeid: nodeid, Nlookup: nlookup}, fs.opts...)
 	if err != nil {
