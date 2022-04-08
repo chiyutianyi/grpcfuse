@@ -246,18 +246,6 @@ func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse
 	return fuse.OK
 }
 
-func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
-	if _, err := fs.client.ReleaseDir(context.TODO(), &pb.ReleaseRequest{
-		Header:       toPbHeader(&in.InHeader),
-		Fh:           in.Fh,
-		Flags:        in.Flags,
-		ReleaseFlags: in.ReleaseFlags,
-		LockOwner:    in.LockOwner,
-	}, fs.opts...); err != nil {
-		log.Errorf("ReleaseDir: %v", err)
-	}
-}
-
 func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
 	ctx := newContext(cancel, in)
 	defer releaseContext(ctx)
