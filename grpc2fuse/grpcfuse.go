@@ -219,33 +219,6 @@ func (fs *fileSystem) Release(cancel <-chan struct{}, in *fuse.ReleaseIn) {
 	}
 }
 
-func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
-
-	res, err := fs.client.OpenDir(ctx, &pb.OpenDirRequest{
-		OpenIn: &pb.OpenIn{
-			Header: toPbHeader(&in.InHeader),
-			Flags:  in.Flags,
-			Mode:   in.Mode,
-		},
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("OpenDir: %v", err)
-		return fuse.EIO
-	}
-
-	if res.Status.GetCode() != 0 {
-		return fuse.Status(res.Status.GetCode())
-	}
-
-	out.Fh = res.OpenOut.Fh
-	out.OpenFlags = res.OpenOut.OpenFlags
-	out.Padding = res.OpenOut.Padding
-	return fuse.OK
-}
-
 func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
 	ctx := newContext(cancel, in)
 	defer releaseContext(ctx)
