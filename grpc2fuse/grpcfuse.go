@@ -203,18 +203,3 @@ func (fs *fileSystem) Open(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.Op
 	out.Padding = res.OpenOut.Padding
 	return fuse.OK
 }
-
-func (fs *fileSystem) Release(cancel <-chan struct{}, in *fuse.ReleaseIn) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
-
-	if _, err := fs.client.Release(ctx, &pb.ReleaseRequest{
-		Header:       toPbHeader(&in.InHeader),
-		Fh:           in.Fh,
-		Flags:        in.Flags,
-		ReleaseFlags: in.ReleaseFlags,
-		LockOwner:    in.LockOwner,
-	}, fs.opts...); err != nil {
-		log.Errorf("Release: %v", err)
-	}
-}
