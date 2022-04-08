@@ -18,29 +18,30 @@ package grpc2fuse
 
 import (
 	"github.com/chiyutianyi/grpcfuse/pb"
+
 	"github.com/hanwen/go-fuse/v2/fuse"
 )
 
-func getUmask(in *fuse.MknodIn) uint16 {
-	return 0
-}
+func (fs *fileSystem) Create(cancel <-chan struct{}, input *fuse.CreateIn, name string, out *fuse.CreateOut) (code fuse.Status) {
+	ctx := newContext(cancel, &input.InHeader)
+	defer releaseContext(ctx)
 
-func setFlags(out *fuse.Attr, flags uint32) {
-	out.Flags_ = flags
-}
+	res, err := fs.client.Create(ctx, &pb.CreateRequest{
+		Header:  toPbHeader(&input.InHeader),
+		Name:    name,
+		Flags:   input.Flags,
+		Mode:    input.Mode,
+		Umask:   input.Umask,
+		Padding: input.Padding,
+	}, fs.opts...)
 
-func setBlksize(out *fuse.Attr, size uint32) {
-}
-
-func setPadding(out *fuse.Attr, padding uint32) {
-}
-
-func toPbReadIn(in *fuse.ReadIn) *pb.ReadIn {
-	return &pb.ReadIn{
-		Header:    toPbHeader(&in.InHeader),
-		Fh:        in.Fh,
-		ReadFlags: in.ReadFlags,
-		Offset:    in.Offset,
-		Size:      in.Size,
+	if st := dealGrpcError("Create", err); st != fuse.OK {
+		return st
 	}
+	if res.Status.GetCode() != 0 {
+		return fuse.Status(res.Status.GetCode())
+	}
+	toFuseEntryOut(&out.EntryOut, res.EntryOut)
+	toFuseOpenOut(&out.OpenOut, res.OpenOut)
+	return fuse.Status(res.Status.GetCode())
 }

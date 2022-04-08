@@ -99,6 +99,9 @@ message ReadIn {
   uint64 offset = 3;
   uint32 size = 4;
   uint32 read_flags = 5;
+  uint64 lock_owner = 6;
+  uint32 flags = 7;
+  uint32 padding = 8;
 }
 
 message FileLock {

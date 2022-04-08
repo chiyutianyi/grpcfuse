@@ -176,30 +176,3 @@ func (fs *fileSystem) Access(cancel <-chan struct{}, input *fuse.AccessIn) (code
 
 	return fuse.Status(res.Status.GetCode())
 }
-
-func (fs *fileSystem) Open(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
-
-	res, err := fs.client.Open(ctx, &pb.OpenRequest{
-		OpenIn: &pb.OpenIn{
-			Header: toPbHeader(&in.InHeader),
-			Flags:  in.Flags,
-			Mode:   in.Mode,
-		},
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("Open: %v", err)
-		return fuse.EIO
-	}
-
-	if res.Status.GetCode() != 0 {
-		return fuse.Status(res.Status.GetCode())
-	}
-
-	out.Fh = res.OpenOut.Fh
-	out.OpenFlags = res.OpenOut.OpenFlags
-	out.Padding = res.OpenOut.Padding
-	return fuse.OK
-}

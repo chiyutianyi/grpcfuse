@@ -34,3 +34,16 @@ func setBlksize(out *fuse.Attr, size uint32) {
 func setPadding(out *fuse.Attr, padding uint32) {
 	out.Padding = padding
 }
+
+func toPbReadIn(in *fuse.ReadIn) *pb.ReadIn {
+	return &pb.ReadIn{
+		Header:    toPbHeader(&in.InHeader),
+		Fh:        in.Fh,
+		ReadFlags: in.ReadFlags,
+		Offset:    in.Offset,
+		Size:      in.Size,
+		LockOwner: in.LockOwner,
+		Flags:     in.Flags,
+		Padding:   in.Padding,
+	}
+}

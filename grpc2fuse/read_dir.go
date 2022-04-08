@@ -37,15 +37,7 @@ func (fs *fileSystem) doReadDir(
 	ctx := newContext(cancel, &in.InHeader)
 	defer releaseContext(ctx)
 
-	stream := reader(ctx, &pb.ReadDirRequest{
-		ReadIn: &pb.ReadIn{
-			Header:    toPbHeader(&in.InHeader),
-			Fh:        in.Fh,
-			ReadFlags: in.ReadFlags,
-			Offset:    in.Offset,
-			Size:      in.Size,
-		},
-	})
+	stream := reader(ctx, &pb.ReadDirRequest{ReadIn: toPbReadIn(in)})
 
 	for {
 		res, err := stream.Recv()

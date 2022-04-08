@@ -81,6 +81,12 @@ func toFuseAttrOut(out *fuse.AttrOut, in *pb.AttrOut) {
 	toFuseAttr(&out.Attr, in.Attr)
 }
 
+func toFuseOpenOut(out *fuse.OpenOut, in *pb.OpenOut) {
+	out.Fh = in.Fh
+	out.OpenFlags = in.OpenFlags
+	out.Padding = in.Padding
+}
+
 func dealGrpcError(method string, err error) fuse.Status {
 	if err == nil {
 		return fuse.OK
