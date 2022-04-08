@@ -31,6 +31,22 @@ type _Dirent struct {
 	Typ     uint32
 }
 
+// DirEntryList holds the return value for READDIR and READDIRPLUS
+// opcodes.
+type DirEntryList struct {
+	buf []byte
+	// capacity of the underlying buffer
+	size int
+	// offset is the requested location in the directory. go-fuse
+	// currently counts in number of directory entries, but this is an
+	// implementation detail and may change in the future.
+	// If `offset` and `fs.fileEntry.dirOffset` disagree, then a
+	// directory seek has taken place.
+	offset uint64
+	// pointer to the last serialized _Dirent. Used by FixMode().
+	lastDirent *_Dirent
+}
+
 const (
 	direntSize   = uint32(unsafe.Sizeof(_Dirent{}))
 	entryOutSize = uint32(unsafe.Sizeof(fuse.EntryOut{}))

@@ -394,8 +394,10 @@ func (s *server) doReadDir(
 		"readFlags": req.ReadIn.ReadFlags,
 	}).Debug(readerName)
 	toFuseInHeader(req.ReadIn.Header, &header)
+
 	buf := s.buffers.AllocBuffer(req.ReadIn.Size)
 	defer s.buffers.FreeBuffer(buf)
+
 	out := fuse.NewDirEntryList(buf, req.ReadIn.Offset)
 
 	ch := newCancel(ctx)
@@ -432,8 +434,11 @@ func (s *server) doReadDir(
 		return nil
 	}
 
+	buf = (*DirEntryList)(unsafe.Pointer(out)).buf
+	bufsize := len(buf)
+
 	for {
-		if req.ReadIn.Size < pos || len(buf[pos:req.ReadIn.Size]) == 0 {
+		if int(pos) >= bufsize || len(buf[pos:]) < int(direntSize) {
 			break
 		}
 
