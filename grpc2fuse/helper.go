@@ -18,6 +18,9 @@ package grpc2fuse
 
 import (
 	"github.com/hanwen/go-fuse/v2/fuse"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
@@ -76,4 +79,17 @@ func toFuseAttrOut(out *fuse.AttrOut, in *pb.AttrOut) {
 	out.AttrValid = in.AttrValid
 	out.AttrValidNsec = uint32(in.AttrValidNsec)
 	toFuseAttr(&out.Attr, in.Attr)
+}
+
+func dealError(method string, err error) fuse.Status {
+	if err == nil {
+		return fuse.OK
+	}
+	if st, ok := status.FromError(err); ok {
+		if st.Code() == codes.Unimplemented {
+			return fuse.ENOSYS
+		}
+	}
+	log.Errorf("%s: %v", method, err)
+	return fuse.EIO
 }

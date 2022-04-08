@@ -405,7 +405,7 @@ message CopyFileRangeRequest {
 
 message CopyFileRangeResponse {
   Status status = 1;
-  uint64 written = 2;
+  uint32 written = 2;
 }
 
 message FlushRequest {
