@@ -20,11 +20,37 @@ import (
 	"context"
 	"io"
 
-	"github.com/hanwen/go-fuse/v2/fuse"
+	"github.com/chiyutianyi/grpcfuse/pb"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/chiyutianyi/grpcfuse/pb"
+	"github.com/hanwen/go-fuse/v2/fuse"
 )
+
+func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
+	ctx := newContext(cancel, &in.InHeader)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.OpenDir(ctx, &pb.OpenDirRequest{
+		OpenIn: &pb.OpenIn{
+			Header: toPbHeader(&in.InHeader),
+			Flags:  in.Flags,
+			Mode:   in.Mode,
+		},
+	}, fs.opts...)
+
+	if st := dealGrpcError("OpenDir", err); st != fuse.OK {
+		return st
+	}
+
+	if res.Status.GetCode() != 0 {
+		return fuse.Status(res.Status.GetCode())
+	}
+
+	out.Fh = res.OpenOut.Fh
+	out.OpenFlags = res.OpenOut.OpenFlags
+	out.Padding = res.OpenOut.Padding
+	return fuse.OK
+}
 
 func (fs *fileSystem) doReadDir(
 	cancel <-chan struct{},
@@ -98,4 +124,34 @@ func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *
 	}
 
 	return fs.doReadDir(cancel, in, out, reader, "ReadDirPlus")
+}
+
+func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
+	if _, err := fs.client.ReleaseDir(context.TODO(), &pb.ReleaseRequest{
+		Header:       toPbHeader(&in.InHeader),
+		Fh:           in.Fh,
+		Flags:        in.Flags,
+		ReleaseFlags: in.ReleaseFlags,
+		LockOwner:    in.LockOwner,
+	}, fs.opts...); err != nil {
+		dealGrpcError("ReleaseDir", err)
+	}
+}
+
+func (fs *fileSystem) FsyncDir(cancel <-chan struct{}, input *fuse.FsyncIn) (code fuse.Status) {
+	ctx := newContext(cancel, &input.InHeader)
+	defer releaseContext(ctx)
+
+	res, err := fs.client.FsyncDir(ctx, &pb.FsyncRequest{
+		Header:     toPbHeader(&input.InHeader),
+		Fh:         input.Fh,
+		FsyncFlags: input.FsyncFlags,
+		Padding:    input.Padding,
+	}, fs.opts...)
+
+	if st := dealGrpcError("FsyncDir", err); st != fuse.OK {
+		return st
+	}
+
+	return fuse.Status(res.Status.GetCode())
 }
