@@ -258,26 +258,6 @@ func (mr *MockRawFileSystemClientMockRecorder) GetXAttr(ctx, in interface{}, opt
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetXAttr", reflect.TypeOf((*MockRawFileSystemClient)(nil).GetXAttr), varargs...)
 }
 
-// LSeek mocks base method.
-func (m *MockRawFileSystemClient) LSeek(ctx context.Context, in *pb.LSeekRequest, opts ...grpc.CallOption) (*pb.LSeekResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []interface{}{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "LSeek", varargs...)
-	ret0, _ := ret[0].(*pb.LSeekResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LSeek indicates an expected call of LSeek.
-func (mr *MockRawFileSystemClientMockRecorder) LSeek(ctx, in interface{}, opts ...interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]interface{}{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LSeek", reflect.TypeOf((*MockRawFileSystemClient)(nil).LSeek), varargs...)
-}
-
 // Link mocks base method.
 func (m *MockRawFileSystemClient) Link(ctx context.Context, in *pb.LinkRequest, opts ...grpc.CallOption) (*pb.LinkResponse, error) {
 	m.ctrl.T.Helper()
@@ -336,6 +316,26 @@ func (mr *MockRawFileSystemClientMockRecorder) Lookup(ctx, in interface{}, opts 
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockRawFileSystemClient)(nil).Lookup), varargs...)
+}
+
+// Lseek mocks base method.
+func (m *MockRawFileSystemClient) Lseek(ctx context.Context, in *pb.LseekRequest, opts ...grpc.CallOption) (*pb.LseekResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Lseek", varargs...)
+	ret0, _ := ret[0].(*pb.LseekResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Lseek indicates an expected call of Lseek.
+func (mr *MockRawFileSystemClientMockRecorder) Lseek(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lseek", reflect.TypeOf((*MockRawFileSystemClient)(nil).Lseek), varargs...)
 }
 
 // Mkdir mocks base method.
@@ -1335,21 +1335,6 @@ func (mr *MockRawFileSystemServerMockRecorder) GetXAttr(arg0, arg1 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetXAttr", reflect.TypeOf((*MockRawFileSystemServer)(nil).GetXAttr), arg0, arg1)
 }
 
-// LSeek mocks base method.
-func (m *MockRawFileSystemServer) LSeek(arg0 context.Context, arg1 *pb.LSeekRequest) (*pb.LSeekResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "LSeek", arg0, arg1)
-	ret0, _ := ret[0].(*pb.LSeekResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// LSeek indicates an expected call of LSeek.
-func (mr *MockRawFileSystemServerMockRecorder) LSeek(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LSeek", reflect.TypeOf((*MockRawFileSystemServer)(nil).LSeek), arg0, arg1)
-}
-
 // Link mocks base method.
 func (m *MockRawFileSystemServer) Link(arg0 context.Context, arg1 *pb.LinkRequest) (*pb.LinkResponse, error) {
 	m.ctrl.T.Helper()
@@ -1393,6 +1378,21 @@ func (m *MockRawFileSystemServer) Lookup(arg0 context.Context, arg1 *pb.LookupRe
 func (mr *MockRawFileSystemServerMockRecorder) Lookup(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lookup", reflect.TypeOf((*MockRawFileSystemServer)(nil).Lookup), arg0, arg1)
+}
+
+// Lseek mocks base method.
+func (m *MockRawFileSystemServer) Lseek(arg0 context.Context, arg1 *pb.LseekRequest) (*pb.LseekResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Lseek", arg0, arg1)
+	ret0, _ := ret[0].(*pb.LseekResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Lseek indicates an expected call of Lseek.
+func (mr *MockRawFileSystemServerMockRecorder) Lseek(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Lseek", reflect.TypeOf((*MockRawFileSystemServer)(nil).Lseek), arg0, arg1)
 }
 
 // Mkdir mocks base method.

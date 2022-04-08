@@ -17,11 +17,11 @@
 syntax = "proto3";
 
 package pb;
+option go_package="github.com/chiyutianyi/grpcfuse/pb";
 
 import "shared.proto";
 
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 // RawFileSystem  is an interface close to the FUSE wire protocol.
 // 
@@ -79,7 +79,7 @@ service RawFileSystem {
   rpc Create(CreateRequest) returns (CreateResponse) {}
   rpc Open(OpenRequest) returns (OpenResponse) {}
   rpc Read(ReadRequest) returns (stream ReadResponse) {}
-  rpc LSeek(LSeekRequest) returns (LSeekResponse) {}
+  rpc Lseek(LseekRequest) returns (LseekResponse) {}
 
   // File locking
   rpc GetLk(LkRequest) returns (GetLkResponse) {}
@@ -336,7 +336,7 @@ message ReadResponse {
   bytes buffer = 2;
 }
 
-message LSeekRequest {
+message LseekRequest {
   InHeader header = 1;
   uint64 fh = 2;
   uint64 offset = 3;
@@ -344,7 +344,7 @@ message LSeekRequest {
   uint32 padding = 5;
 }
 
-message LSeekResponse {
+message LseekResponse {
   Status status = 1;
   uint64 offset = 2;
 }

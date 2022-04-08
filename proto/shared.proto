@@ -17,6 +17,7 @@
 syntax = "proto3";
 
 package pb;
+option go_package="github.com/chiyutianyi/grpcfuse/pb";
 
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 

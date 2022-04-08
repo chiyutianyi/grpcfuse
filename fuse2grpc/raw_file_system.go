@@ -191,48 +191,7 @@ func (s *server) SetXAttr(context.Context, *pb.SetXAttrRequest) (*pb.SetXAttrRes
 func (s *server) RemoveXAttr(context.Context, *pb.RemoveXAttrRequest) (*pb.RemoveXAttrResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveXAttr not implemented")
 }
-func (s *server) Create(context.Context, *pb.CreateRequest) (*pb.CreateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
-}
 
-func (s *server) Open(ctx context.Context, req *pb.OpenRequest) (*pb.OpenResponse, error) {
-	var (
-		header fuse.InHeader
-		out    fuse.OpenOut
-	)
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId": req.OpenIn.Header.NodeId,
-		"flags":  req.OpenIn.Flags,
-		"mode":   req.OpenIn.Mode,
-	}).Debug("Open")
-	toFuseInHeader(req.OpenIn.Header, &header)
-
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Open(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
-	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method Open not implemented")
-	}
-	if st != fuse.OK {
-		return &pb.OpenResponse{Status: &pb.Status{Code: int32(st)}}, nil
-	}
-	return &pb.OpenResponse{
-		OpenOut: &pb.OpenOut{
-			Fh:        out.Fh,
-			OpenFlags: out.OpenFlags,
-			Padding:   out.Padding,
-		},
-		Status: &pb.Status{Code: 0},
-	}, nil
-}
-
-func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) error {
-	return status.Errorf(codes.Unimplemented, "method Read not implemented")
-}
-func (s *server) LSeek(context.Context, *pb.LSeekRequest) (*pb.LSeekResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LSeek not implemented")
-}
 func (s *server) GetLk(context.Context, *pb.LkRequest) (*pb.GetLkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetLk not implemented")
 }

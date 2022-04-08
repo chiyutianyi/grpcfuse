@@ -81,8 +81,8 @@ func (fs *fileSystem) Lseek(cancel <-chan struct{}, in *fuse.LseekIn, out *fuse.
 	ctx := newContext(cancel, &in.InHeader)
 	defer releaseContext(ctx)
 
-	res, err := fs.client.LSeek(ctx,
-		&pb.LSeekRequest{
+	res, err := fs.client.Lseek(ctx,
+		&pb.LseekRequest{
 			Header:  toPbHeader(&in.InHeader),
 			Fh:      in.Fh,
 			Offset:  in.Offset,
@@ -93,5 +93,9 @@ func (fs *fileSystem) Lseek(cancel <-chan struct{}, in *fuse.LseekIn, out *fuse.
 	if st := dealGrpcError("Lseek", err); st != fuse.OK {
 		return st
 	}
-	return fuse.Status(res.Status.Code)
+	if res.Status.GetCode() != 0 {
+		return fuse.Status(res.Status.GetCode())
+	}
+	out.Offset = res.Offset
+	return fuse.OK
 }
