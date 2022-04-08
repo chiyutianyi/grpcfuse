@@ -18,7 +18,6 @@ package grpc2fuse
 
 import (
 	"context"
-	"io"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	log "github.com/sirupsen/logrus"
@@ -244,104 +243,6 @@ func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse
 	out.Fh = res.OpenOut.Fh
 	out.OpenFlags = res.OpenOut.OpenFlags
 	out.Padding = res.OpenOut.Padding
-	return fuse.OK
-}
-
-func (fs *fileSystem) doReadDir(
-	cancel <-chan struct{},
-	in *fuse.ReadIn,
-	out *fuse.DirEntryList,
-	reader func(ctx context.Context, in *pb.ReadDirRequest, opts ...grpc.CallOption) (pb.RawFileSystem_ReadDirClient, error),
-	funcName string,
-) fuse.Status {
-	var de fuse.DirEntry
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
-
-	stream, err := reader(ctx, &pb.ReadDirRequest{
-		ReadIn: &pb.ReadIn{
-			Header:    toPbHeader(&in.InHeader),
-			Fh:        in.Fh,
-			ReadFlags: in.ReadFlags,
-			Offset:    in.Offset,
-			Size:      in.Size,
-		},
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("%s: %v", funcName, err)
-		return fuse.EIO
-	}
-
-	for {
-		res, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Errorf("%s: %v", funcName, err)
-			return fuse.EIO
-		}
-		if res.Status.GetCode() != 0 {
-			return fuse.Status(res.Status.GetCode())
-		}
-		for _, e := range res.Entries {
-			de.Ino = e.Ino
-			de.Name = string(e.Name)
-			de.Mode = e.Mode
-			if !out.AddDirEntry(de) {
-				break
-			}
-		}
-	}
-	return fuse.OK
-}
-
-func (fs *fileSystem) ReadDir(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
-	return fs.doReadDir(cancel, in, out, fs.client.ReadDir, "ReadDir")
-}
-
-func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
-	var de fuse.DirEntry
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
-
-	stream, err := fs.client.ReadDirPlus(ctx, &pb.ReadDirRequest{
-		ReadIn: &pb.ReadIn{
-			Header:    toPbHeader(&in.InHeader),
-			Fh:        in.Fh,
-			ReadFlags: in.ReadFlags,
-			Offset:    in.Offset,
-			Size:      in.Size,
-		},
-	}, fs.opts...)
-
-	if err != nil {
-		log.Errorf("ReadDirPlus: %v", err)
-		return fuse.EIO
-	}
-
-	for {
-		res, err := stream.Recv()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Errorf("ReadDirPlus: %v", err)
-			return fuse.EIO
-		}
-		if res.Status.GetCode() != 0 {
-			return fuse.Status(res.Status.GetCode())
-		}
-		for _, e := range res.Entries {
-			de.Ino = e.Ino
-			de.Name = string(e.Name)
-			de.Mode = e.Mode
-			if !out.AddDirEntry(de) {
-				break
-			}
-		}
-	}
 	return fuse.OK
 }
 
