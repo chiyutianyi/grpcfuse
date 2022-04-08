@@ -162,32 +162,6 @@ func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAt
 	}, nil
 }
 
-func (s *server) Link(context.Context, *pb.LinkRequest) (*pb.LinkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Link not implemented")
-}
-func (s *server) Symlink(context.Context, *pb.SymlinkRequest) (*pb.SymlinkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Symlink not implemented")
-}
-
-func (s *server) Readlink(ctx context.Context, req *pb.ReadlinkRequest) (*pb.ReadlinkResponse, error) {
-	var (
-		header fuse.InHeader
-	)
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId": req.Header.NodeId,
-	}).Debug("Readlink")
-	toFuseInHeader(req.Header, &header)
-
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	out, st := s.fs.Readlink(ch, &header)
-	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method Readlink not implemented")
-	}
-	return &pb.ReadlinkResponse{Out: out, Status: &pb.Status{Code: int32(st)}}, nil
-}
-
 func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessResponse, error) {
 	var (
 		header fuse.InHeader
