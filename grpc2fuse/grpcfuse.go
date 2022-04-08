@@ -55,13 +55,6 @@ func (fs *fileSystem) String() string {
 	return res.Value
 }
 
-func (fs *fileSystem) Forget(nodeid, nlookup uint64) {
-	_, err := fs.client.Forget(context.TODO(), &pb.ForgetRequest{Nodeid: nodeid, Nlookup: nlookup}, fs.opts...)
-	if err != nil {
-		log.Errorf("Forget: %v", err)
-	}
-}
-
 func (fs *fileSystem) GetAttr(cancel <-chan struct{}, in *fuse.GetAttrIn, out *fuse.AttrOut) (code fuse.Status) {
 	ctx := newContext(cancel, &in.InHeader)
 	defer releaseContext(ctx)
