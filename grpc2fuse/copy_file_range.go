@@ -37,7 +37,7 @@ func (fs *fileSystem) CopyFileRange(cancel <-chan struct{}, input *fuse.CopyFile
 		Flags:     input.Flags,
 	}, fs.opts...)
 
-	if st := dealError("CopyFileRange", err); st != fuse.OK {
+	if st := dealGrpcError("CopyFileRange", err); st != fuse.OK {
 		return 0, st
 	}
 

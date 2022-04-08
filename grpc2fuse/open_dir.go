@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
@@ -35,9 +34,8 @@ func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse
 		},
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("OpenDir: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("OpenDir", err); st != fuse.OK {
+		return st
 	}
 
 	if res.Status.GetCode() != 0 {

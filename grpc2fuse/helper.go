@@ -81,12 +81,13 @@ func toFuseAttrOut(out *fuse.AttrOut, in *pb.AttrOut) {
 	toFuseAttr(&out.Attr, in.Attr)
 }
 
-func dealError(method string, err error) fuse.Status {
+func dealGrpcError(method string, err error) fuse.Status {
 	if err == nil {
 		return fuse.OK
 	}
 	if st, ok := status.FromError(err); ok {
 		if st.Code() == codes.Unimplemented {
+			log.Warnf("%s unimplemented", method)
 			return fuse.ENOSYS
 		}
 	}

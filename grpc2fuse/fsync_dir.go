@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) FsyncDir(cancel <-chan struct{}, input *fuse.FsyncIn) (code fuse.Status) {
@@ -34,9 +33,8 @@ func (fs *fileSystem) FsyncDir(cancel <-chan struct{}, input *fuse.FsyncIn) (cod
 		Padding:    input.Padding,
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("FsyncDir: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("FsyncDir", err); st != fuse.OK {
+		return st
 	}
 
 	return fuse.Status(res.Status.GetCode())

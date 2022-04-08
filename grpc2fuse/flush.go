@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) Flush(cancel <-chan struct{}, input *fuse.FlushIn) (code fuse.Status) {
@@ -35,9 +34,8 @@ func (fs *fileSystem) Flush(cancel <-chan struct{}, input *fuse.FlushIn) (code f
 		LockOwner: input.LockOwner,
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("Flush: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("Flush", err); st != fuse.OK {
+		return st
 	}
 
 	return fuse.Status(res.Status.GetCode())

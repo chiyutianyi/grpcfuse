@@ -22,7 +22,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
@@ -33,6 +32,6 @@ func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
 		ReleaseFlags: in.ReleaseFlags,
 		LockOwner:    in.LockOwner,
 	}, fs.opts...); err != nil {
-		log.Errorf("ReleaseDir: %v", err)
+		dealGrpcError("ReleaseDir", err)
 	}
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
@@ -31,9 +30,8 @@ func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fus
 		Input: toPbHeader(in),
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("SetAttr: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("StatFs", err); st != fuse.OK {
+		return st
 	}
 
 	if res.Status.GetCode() != 0 {

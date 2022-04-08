@@ -52,9 +52,8 @@ func (fs *fileSystem) doReadDir(
 		if err == io.EOF {
 			break
 		}
-		if err != nil {
-			log.Errorf("%s: %v", funcName, err)
-			return fuse.EIO
+		if st := dealGrpcError(funcName, err); st != fuse.OK {
+			return st
 		}
 		if res.Status.GetCode() != 0 {
 			return fuse.Status(res.Status.GetCode())

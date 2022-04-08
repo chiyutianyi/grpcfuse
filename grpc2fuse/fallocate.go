@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) Fallocate(cancel <-chan struct{}, input *fuse.FallocateIn) (code fuse.Status) {
@@ -36,9 +35,8 @@ func (fs *fileSystem) Fallocate(cancel <-chan struct{}, input *fuse.FallocateIn)
 		Padding: input.Padding,
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("SetAttr: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("Fallocate", err); st != fuse.OK {
+		return st
 	}
 
 	return fuse.Status(res.Status.GetCode())

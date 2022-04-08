@@ -20,7 +20,6 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 func (fs *fileSystem) Fsync(cancel <-chan struct{}, input *fuse.FsyncIn) (code fuse.Status) {
@@ -34,9 +33,8 @@ func (fs *fileSystem) Fsync(cancel <-chan struct{}, input *fuse.FsyncIn) (code f
 		Padding:    input.Padding,
 	}, fs.opts...)
 
-	if err != nil {
-		log.Errorf("Fsync: %v", err)
-		return fuse.EIO
+	if st := dealGrpcError("Fsync", err); st != fuse.OK {
+		return st
 	}
 
 	return fuse.Status(res.Status.GetCode())
