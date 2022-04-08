@@ -10,6 +10,7 @@ require (
 require (
 	github.com/alecthomas/assert v1.0.0
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang/mock v1.4.4
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/hanwen/go-fuse/v2 v2.1.1-0.20220112183258-f57e95bda82d
