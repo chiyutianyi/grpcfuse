@@ -18,6 +18,7 @@ package fuse2grpc
 
 import (
 	"context"
+	"fmt"
 	"unsafe"
 
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
@@ -49,9 +50,12 @@ func (s *server) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupR
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.Lookup(ch, &header, req.Name, &out)
-	if status != fuse.OK {
-		return &pb.LookupResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.Lookup(ch, &header, req.Name, &out)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Lookup not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.LookupResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.LookupResponse{
 		EntryOut: &pb.EntryOut{
@@ -88,9 +92,12 @@ func (s *server) GetAttr(ctx context.Context, req *pb.GetAttrRequest) (*pb.GetAt
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.GetAttr(ch, &fuse.GetAttrIn{InHeader: header}, &out)
-	if status != fuse.OK {
-		return &pb.GetAttrResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.GetAttr(ch, &fuse.GetAttrIn{InHeader: header}, &out)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method GetAttr not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.GetAttrResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.GetAttrResponse{
 		AttrOut: &pb.AttrOut{
@@ -114,7 +121,7 @@ func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAt
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.SetAttr(ch,
+	st := s.fs.SetAttr(ch,
 		&fuse.SetAttrIn{
 			SetAttrInCommon: fuse.SetAttrInCommon{
 				InHeader:  header,
@@ -140,8 +147,11 @@ func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAt
 		},
 		&out,
 	)
-	if status != fuse.OK {
-		return &pb.SetAttrResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method SetAttr not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.SetAttrResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.SetAttrResponse{
 		AttrOut: &pb.AttrOut{
@@ -184,8 +194,11 @@ func (s *server) Readlink(ctx context.Context, req *pb.ReadlinkRequest) (*pb.Rea
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	out, status := s.fs.Readlink(ch, &header)
-	return &pb.ReadlinkResponse{Out: out, Status: &pb.Status{Code: int32(status)}}, nil
+	out, st := s.fs.Readlink(ch, &header)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Readlink not implemented")
+	}
+	return &pb.ReadlinkResponse{Out: out, Status: &pb.Status{Code: int32(st)}}, nil
 }
 
 func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessResponse, error) {
@@ -200,8 +213,11 @@ func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessR
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.Access(ch, &fuse.AccessIn{InHeader: header, Mask: req.Mask, Padding: req.Padding})
-	return &pb.AccessResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.Access(ch, &fuse.AccessIn{InHeader: header, Mask: req.Mask, Padding: req.Padding})
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Access not implemented")
+	}
+	return &pb.AccessResponse{Status: &pb.Status{Code: int32(st)}}, nil
 }
 
 func (s *server) GetXAttr(context.Context, *pb.GetXAttrRequest) (*pb.GetXAttrResponse, error) {
@@ -235,9 +251,12 @@ func (s *server) Open(ctx context.Context, req *pb.OpenRequest) (*pb.OpenRespons
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.Open(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
-	if status != fuse.OK {
-		return &pb.OpenResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.Open(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Open not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.OpenResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.OpenResponse{
 		OpenOut: &pb.OpenOut{
@@ -307,8 +326,11 @@ func (s *server) Flush(ctx context.Context, req *pb.FlushRequest) (*pb.FlushResp
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.Flush(ch, &fuse.FlushIn{InHeader: header, Fh: req.Fh, Unused: req.Unused, Padding: req.Padding, LockOwner: req.LockOwner})
-	return &pb.FlushResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.Flush(ch, &fuse.FlushIn{InHeader: header, Fh: req.Fh, Unused: req.Unused, Padding: req.Padding, LockOwner: req.LockOwner})
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Flush not implemented")
+	}
+	return &pb.FlushResponse{Status: &pb.Status{Code: int32(st)}}, nil
 }
 
 func (s *server) Fsync(context.Context, *pb.FsyncRequest) (*pb.FsyncResponse, error) {
@@ -333,9 +355,12 @@ func (s *server) OpenDir(ctx context.Context, req *pb.OpenDirRequest) (*pb.OpenD
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := s.fs.OpenDir(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
-	if status != fuse.OK {
-		return &pb.OpenDirResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.OpenDir(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method OpenDir not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.OpenDirResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.OpenDirResponse{
 		OpenOut: &pb.OpenOut{
@@ -376,7 +401,7 @@ func (s *server) doReadDir(
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	status := reader(ch,
+	st := reader(ch,
 		&fuse.ReadIn{
 			InHeader:  header,
 			Fh:        req.ReadIn.Fh,
@@ -385,8 +410,12 @@ func (s *server) doReadDir(
 			ReadFlags: req.ReadIn.ReadFlags,
 		}, out)
 
-	if status != fuse.OK {
-		stream.Send(&pb.ReadDirResponse{Status: &pb.Status{Code: int32(status)}})
+	if st == fuse.ENOSYS {
+		return status.Errorf(codes.Unimplemented, fmt.Sprintf("method %s not implemented", readerName))
+	}
+
+	if st != fuse.OK {
+		stream.Send(&pb.ReadDirResponse{Status: &pb.Status{Code: int32(st)}})
 		return nil
 	}
 
@@ -480,9 +509,12 @@ func (s *server) StatFs(ctx context.Context, req *pb.StatfsRequest) (*pb.StatfsR
 
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
-	status := s.fs.StatFs(ch, &header, &out)
-	if status != fuse.OK {
-		return &pb.StatfsResponse{Status: &pb.Status{Code: int32(status)}}, nil
+	st := s.fs.StatFs(ch, &header, &out)
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method StatFS not implemented")
+	}
+	if st != fuse.OK {
+		return &pb.StatfsResponse{Status: &pb.Status{Code: int32(st)}}, nil
 	}
 	return &pb.StatfsResponse{
 		Blocks:  out.Blocks,
