@@ -254,9 +254,6 @@ func (s *server) Flush(ctx context.Context, req *pb.FlushRequest) (*pb.FlushResp
 func (s *server) Fsync(context.Context, *pb.FsyncRequest) (*pb.FsyncResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Fsync not implemented")
 }
-func (s *server) Fallocate(context.Context, *pb.FallocateRequest) (*pb.FallocateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Fallocate not implemented")
-}
 
 func (s *server) StatFs(ctx context.Context, req *pb.StatfsRequest) (*pb.StatfsResponse, error) {
 	var (
