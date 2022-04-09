@@ -21,29 +21,28 @@ import (
 
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	"github.com/hanwen/go-fuse/v2/fuse"
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
-// msgSizeThreshold 1mb < default grpc message size limit 4mb
-const msgSizeThreshold = 1 << 20
+func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessResponse, error) {
+	var (
+		header fuse.InHeader
+	)
+	grpc_logrus.Extract(ctx).WithFields(log.Fields{
+		"nodeId": req.Header.NodeId,
+	}).Debug("Access")
+	toFuseInHeader(req.Header, &header)
 
-type server struct {
-	pb.UnimplementedRawFileSystemServer
+	ch := newCancel(ctx)
+	defer releaseCancel(ch)
 
-	fs fuse.RawFileSystem
-
-	buffers bufferPool
-
-	msgSizeThreshold int
-}
-
-// NewServer returns a new loopback server.
-func NewServer(fs fuse.RawFileSystem) *server {
-	return &server{fs: fs, buffers: bufferPool{}, msgSizeThreshold: msgSizeThreshold}
-}
-
-func (s *server) String(ctx context.Context, req *pb.StringRequest) (*pb.StringResponse, error) {
-	grpc_logrus.Extract(ctx).Debug("String")
-	return &pb.StringResponse{Value: s.fs.String()}, nil
+	st := s.fs.Access(ch, &fuse.AccessIn{InHeader: header, Mask: req.Mask, Padding: req.Padding})
+	if st == fuse.ENOSYS {
+		return nil, status.Errorf(codes.Unimplemented, "method Access not implemented")
+	}
+	return &pb.AccessResponse{Status: &pb.Status{Code: int32(st)}}, nil
 }
