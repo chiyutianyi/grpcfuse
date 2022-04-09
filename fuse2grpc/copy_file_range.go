@@ -28,26 +28,28 @@ import (
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
-func (s *server) Fallocate(ctx context.Context, req *pb.FallocateRequest) (*pb.FallocateResponse, error) {
+func (s *server) CopyFileRange(ctx context.Context, req *pb.CopyFileRangeRequest) (*pb.CopyFileRangeResponse, error) {
 	var (
 		header fuse.InHeader
 	)
 	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId":  req.Header.NodeId,
-		"fh":      req.Fh,
-		"offset":  req.Offset,
-		"length":  req.Length,
-		"mode":    req.Mode,
-		"padding": req.Padding,
-	}).Debug("Fallocate")
+		"nodeId":    req.Header.NodeId,
+		"fhIn":      req.FhIn,
+		"offIn":     req.OffIn,
+		"nodeIdOut": req.NodeIdOut,
+		"fhOut":     req.FhOut,
+		"offOut":    req.OffOut,
+		"len":       req.Len,
+		"flags":     req.Flags,
+	}).Debug("CopyFileRange")
 	toFuseInHeader(req.Header, &header)
 
 	ch := newCancel(ctx)
 	defer releaseCancel(ch)
 
-	st := s.fs.Fallocate(ch, &fuse.FallocateIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Length: req.Length, Mode: req.Mode, Padding: req.Padding})
+	writen, st := s.fs.CopyFileRange(ch, &fuse.CopyFileRangeIn{InHeader: header, FhIn: req.FhIn, OffIn: req.OffIn, NodeIdOut: req.NodeIdOut, FhOut: req.FhOut, OffOut: req.OffOut, Len: req.Len, Flags: req.Flags})
 	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method Fallocate not implemented")
+		return nil, status.Errorf(codes.Unimplemented, "method CopyFileRange not implemented")
 	}
-	return &pb.FallocateResponse{Status: &pb.Status{Code: int32(st)}}, nil
+	return &pb.CopyFileRangeResponse{Written: writen, Status: &pb.Status{Code: int32(st)}}, nil
 }

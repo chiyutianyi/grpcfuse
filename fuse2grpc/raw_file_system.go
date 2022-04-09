@@ -224,9 +224,6 @@ func (s *server) Release(ctx context.Context, req *pb.ReleaseRequest) (*emptypb.
 func (s *server) Write(context.Context, *pb.WriteRequest) (*pb.WriteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 }
-func (s *server) CopyFileRange(context.Context, *pb.CopyFileRangeRequest) (*pb.CopyFileRangeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CopyFileRange not implemented")
-}
 
 func (s *server) Flush(ctx context.Context, req *pb.FlushRequest) (*pb.FlushResponse, error) {
 	var (

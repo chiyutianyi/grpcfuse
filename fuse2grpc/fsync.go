@@ -45,7 +45,7 @@ func (s *server) Fsync(ctx context.Context, req *pb.FsyncRequest) (*pb.FsyncResp
 
 	st := s.fs.Fsync(ch, &fuse.FsyncIn{InHeader: header, Fh: req.Fh, FsyncFlags: req.FsyncFlags, Padding: req.Padding})
 	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method OpenDir not implemented")
+		return nil, status.Errorf(codes.Unimplemented, "method Fsync not implemented")
 	}
 	return &pb.FsyncResponse{Status: &pb.Status{Code: int32(st)}}, nil
 }
