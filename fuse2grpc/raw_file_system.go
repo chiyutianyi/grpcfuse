@@ -192,16 +192,6 @@ func (s *server) RemoveXAttr(context.Context, *pb.RemoveXAttrRequest) (*pb.Remov
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveXAttr not implemented")
 }
 
-func (s *server) GetLk(context.Context, *pb.LkRequest) (*pb.GetLkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetLk not implemented")
-}
-func (s *server) SetLk(context.Context, *pb.LkRequest) (*pb.SetLkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetLk not implemented")
-}
-func (s *server) SetLkw(context.Context, *pb.LkRequest) (*pb.SetLkResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetLkw not implemented")
-}
-
 func (s *server) Release(ctx context.Context, req *pb.ReleaseRequest) (*emptypb.Empty, error) {
 	var (
 		header fuse.InHeader
