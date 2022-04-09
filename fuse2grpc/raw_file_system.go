@@ -251,10 +251,6 @@ func (s *server) Flush(ctx context.Context, req *pb.FlushRequest) (*pb.FlushResp
 	return &pb.FlushResponse{Status: &pb.Status{Code: int32(st)}}, nil
 }
 
-func (s *server) Fsync(context.Context, *pb.FsyncRequest) (*pb.FsyncResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Fsync not implemented")
-}
-
 func (s *server) StatFs(ctx context.Context, req *pb.StatfsRequest) (*pb.StatfsResponse, error) {
 	var (
 		out    fuse.StatfsOut
