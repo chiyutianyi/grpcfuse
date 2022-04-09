@@ -68,97 +68,6 @@ func (s *server) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupR
 		Status: &pb.Status{Code: 0},
 	}, nil
 }
-func (s *server) Forget(ctx context.Context, req *pb.ForgetRequest) (*emptypb.Empty, error) {
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeid":  req.Nodeid,
-		"nlookup": req.Nlookup,
-	}).Debug("Forget")
-	s.fs.Forget(req.Nodeid, req.Nlookup)
-	return &emptypb.Empty{}, nil
-}
-
-func (s *server) GetAttr(ctx context.Context, req *pb.GetAttrRequest) (*pb.GetAttrResponse, error) {
-	var (
-		out    fuse.AttrOut
-		header fuse.InHeader
-	)
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId": req.Header.NodeId,
-	}).Debug("GetAttr")
-	toFuseInHeader(req.Header, &header)
-
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.GetAttr(ch, &fuse.GetAttrIn{InHeader: header}, &out)
-	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method GetAttr not implemented")
-	}
-	if st != fuse.OK {
-		return &pb.GetAttrResponse{Status: &pb.Status{Code: int32(st)}}, nil
-	}
-	return &pb.GetAttrResponse{
-		AttrOut: &pb.AttrOut{
-			Attr:          toPbAttr(&out.Attr),
-			AttrValid:     out.AttrValid,
-			AttrValidNsec: out.AttrValidNsec,
-		},
-		Status: &pb.Status{Code: 0},
-	}, nil
-}
-
-func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAttrResponse, error) {
-	var (
-		out    fuse.AttrOut
-		header fuse.InHeader
-	)
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId": req.Header.NodeId,
-	}).Debug("SetAttr")
-	toFuseInHeader(req.Header, &header)
-
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.SetAttr(ch,
-		&fuse.SetAttrIn{
-			SetAttrInCommon: fuse.SetAttrInCommon{
-				InHeader:  header,
-				Valid:     req.Valid,
-				Padding:   req.Padding,
-				Fh:        req.Fh,
-				Size:      req.Size,
-				LockOwner: req.LockOwner,
-				Atime:     req.Atime,
-				Mtime:     req.Mtime,
-				Ctime:     req.Ctime,
-				Atimensec: req.Atimensec,
-				Mtimensec: req.Mtimensec,
-				Ctimensec: req.Ctimensec,
-				Mode:      req.Mode,
-				Unused4:   req.Unused4,
-				Owner: fuse.Owner{
-					Uid: req.Owner.Uid,
-					Gid: req.Owner.Gid,
-				},
-				Unused5: req.Unused5,
-			},
-		},
-		&out,
-	)
-	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method SetAttr not implemented")
-	}
-	if st != fuse.OK {
-		return &pb.SetAttrResponse{Status: &pb.Status{Code: int32(st)}}, nil
-	}
-	return &pb.SetAttrResponse{
-		AttrOut: &pb.AttrOut{
-			Attr: toPbAttr(&out.Attr),
-		},
-		Status: &pb.Status{Code: 0},
-	}, nil
-}
 
 func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessResponse, error) {
 	var (
@@ -177,19 +86,6 @@ func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessR
 		return nil, status.Errorf(codes.Unimplemented, "method Access not implemented")
 	}
 	return &pb.AccessResponse{Status: &pb.Status{Code: int32(st)}}, nil
-}
-
-func (s *server) GetXAttr(context.Context, *pb.GetXAttrRequest) (*pb.GetXAttrResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetXAttr not implemented")
-}
-func (s *server) ListXAttr(context.Context, *pb.ListXAttrRequest) (*pb.ListXAttrResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListXAttr not implemented")
-}
-func (s *server) SetXAttr(context.Context, *pb.SetXAttrRequest) (*pb.SetXAttrResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetXAttr not implemented")
-}
-func (s *server) RemoveXAttr(context.Context, *pb.RemoveXAttrRequest) (*pb.RemoveXAttrResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveXAttr not implemented")
 }
 
 func (s *server) Release(ctx context.Context, req *pb.ReleaseRequest) (*emptypb.Empty, error) {
