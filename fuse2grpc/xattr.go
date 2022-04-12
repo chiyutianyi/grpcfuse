@@ -69,30 +69,6 @@ func (s *server) ListXAttr(ctx context.Context, req *pb.ListXAttrRequest) (*pb.L
 	return &pb.ListXAttrResponse{Size: sz, Status: &pb.Status{Code: int32(st)}}, nil
 }
 
-func (s *server) SetXAttr(ctx context.Context, req *pb.SetXAttrRequest) (*pb.SetXAttrResponse, error) {
-	var (
-		header fuse.InHeader
-	)
-	grpc_logrus.Extract(ctx).WithFields(log.Fields{
-		"nodeId":   req.Header.NodeId,
-		"attr":     req.Attr,
-		"size":     req.Size,
-		"flags":    req.Flags,
-		"position": req.Position,
-		"padding":  req.Padding,
-	}).Debug("SetXAttr")
-	toFuseInHeader(req.Header, &header)
-
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.SetXAttr(ch, &fuse.SetXAttrIn{InHeader: header, Size: req.Size, Flags: req.Flags, Position: req.Position, Padding: req.Padding}, req.Attr, req.Data)
-	if st == fuse.ENOSYS {
-		return nil, status.Errorf(codes.Unimplemented, "method GetXAttr not implemented")
-	}
-	return &pb.SetXAttrResponse{Status: &pb.Status{Code: int32(st)}}, nil
-}
-
 func (s *server) RemoveXAttr(ctx context.Context, req *pb.RemoveXAttrRequest) (*pb.RemoveXAttrResponse, error) {
 	var (
 		header fuse.InHeader
