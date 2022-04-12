@@ -20,6 +20,7 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"path"
 	"runtime"
 	"syscall"
 
@@ -39,7 +40,7 @@ func main() {
 	loggerLevel := flag.String("logger-level", "info", "log level")
 	flag.Parse()
 	if flag.NArg() < 2 {
-		log.Fatal("Usage: %s <mountpath> <fuseserver>")
+		log.Fatalf("Usage: %s <mountpath> <fuseserver>", path.Base(os.Args[0]))
 	}
 
 	log.SetLevel(utils.GetLogLevel(*loggerLevel))

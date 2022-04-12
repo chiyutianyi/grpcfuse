@@ -22,6 +22,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path"
 	"syscall"
 	"time"
 
@@ -47,7 +48,7 @@ func main() {
 	flag.Parse()
 
 	if flag.NArg() < 1 {
-		logrus.Fatal("Usage: %s <ORIGINAL>")
+		logrus.Fatalf("Usage: %s <ORIGINAL>", path.Base(os.Args[0]))
 	}
 
 	logrus.SetLevel(utils.GetLogLevel(*loggerLevel))
