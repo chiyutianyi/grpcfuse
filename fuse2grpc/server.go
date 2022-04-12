@@ -43,6 +43,10 @@ func NewServer(fs fuse.RawFileSystem) *server {
 	return &server{fs: fs, buffers: bufferPool{}, msgSizeThreshold: msgSizeThreshold}
 }
 
+func (s *server) SetMsgSizeThreshold(threshold int) {
+	s.msgSizeThreshold = threshold
+}
+
 func (s *server) String(ctx context.Context, req *pb.StringRequest) (*pb.StringResponse, error) {
 	grpc_logrus.Extract(ctx).Debug("String")
 	return &pb.StringResponse{Value: s.fs.String()}, nil

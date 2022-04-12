@@ -13,20 +13,14 @@ import (
 )
 
 func TestAccess(t *testing.T) {
-	server, fs := startTestServices(t)
+	server, fs := startTestServices(t, 0)
 	defer server.Stop()
 
 	client, conn := newRawFileSystemClient(t, serverSocketPath)
 	defer conn.Close()
 
 	req := &pb.AccessRequest{
-		Header: &pb.InHeader{
-			NodeId: 1,
-			Caller: &pb.Caller{
-				Owner: &pb.Owner{Uid: 1, Gid: 1},
-				Pid:   1,
-			},
-		},
+		Header: TestInHeader,
 	}
 
 	testcases := []struct {

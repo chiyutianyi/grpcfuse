@@ -22,9 +22,24 @@ import (
 
 var (
 	serverSocketPath = GetTemporarySocketFileName()
+
+	TestOwner = &pb.Owner{
+		Uid: uint32(os.Getuid()),
+		Gid: uint32(os.Getgid()),
+	}
+
+	TestCaller = &pb.Caller{
+		Owner: TestOwner,
+		Pid:   uint32(os.Getpid()),
+	}
+
+	TestInHeader = &pb.InHeader{
+		NodeId: 1,
+		Caller: TestCaller,
+	}
 )
 
-func startTestServices(t *testing.T) (*grpc.Server, *mock.MockRawFileSystem) {
+func startTestServices(t *testing.T, msgSizeThreshold int) (*grpc.Server, *mock.MockRawFileSystem) {
 	ctl := gomock.NewController(t)
 
 	fs := mock.NewMockRawFileSystem(ctl)
@@ -40,7 +55,11 @@ func startTestServices(t *testing.T) (*grpc.Server, *mock.MockRawFileSystem) {
 		t.Fatal("failed to start server")
 	}
 
-	pb.RegisterRawFileSystemServer(server, fuse2grpc.NewServer(fs))
+	s := fuse2grpc.NewServer(fs)
+	if msgSizeThreshold > 0 {
+		s.SetMsgSizeThreshold(msgSizeThreshold)
+	}
+	pb.RegisterRawFileSystemServer(server, s)
 	reflection.Register(server)
 
 	go server.Serve(listener)

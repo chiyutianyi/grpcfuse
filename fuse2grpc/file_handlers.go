@@ -155,7 +155,7 @@ func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) e
 	}
 
 	for {
-		if pos+s.msgSizeThreshold > res.Size() {
+		if pos+s.msgSizeThreshold >= res.Size() {
 			batch = data[pos:]
 			flushFunc()
 			break

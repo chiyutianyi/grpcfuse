@@ -22,13 +22,7 @@ func TestAccess(t *testing.T) {
 	log.SetLevel(log.ErrorLevel)
 
 	in := fuse.AccessIn{
-		InHeader: fuse.InHeader{
-			NodeId: 1,
-			Caller: fuse.Caller{
-				Owner: fuse.Owner{Uid: 1, Gid: 1},
-				Pid:   1,
-			},
-		},
+		InHeader: TestInHeader,
 	}
 
 	testcases := []struct {
