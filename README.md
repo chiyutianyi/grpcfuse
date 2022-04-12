@@ -1,5 +1,8 @@
 # Grpcfuse
 
+[![CI](https://github.com/chiyutianyi/grpcfuse/actions/workflows/ci.yml/badge.svg)](https://github.com/chiyutianyi/grpcfuse/actions/workflows/ci.yml)
+
+
 Remote filesystem based on grpc and fuse. The server and client were implemented with pure go.
 
 Grpcfuse consists of two parts:

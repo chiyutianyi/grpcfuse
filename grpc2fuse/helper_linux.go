@@ -18,6 +18,8 @@ package grpc2fuse
 
 import (
 	"github.com/hanwen/go-fuse/v2/fuse"
+
+	"github.com/chiyutianyi/grpcfuse/pb"
 )
 
 func getUmask(in *fuse.MknodIn) uint16 {
