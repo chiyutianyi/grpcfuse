@@ -25,15 +25,16 @@ func TestReadDdir(t *testing.T) {
 			Header: TestInHeader,
 			Fh:     1,
 			Offset: 0,
-			Size:   100,
+			Size:   8192,
 		},
 	}
 
 	fs.EXPECT().ReadDir(gomock.Any(), gomock.Any(), gomock.Any()).DoAndReturn(
 		func(cancel <-chan struct{}, input *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
-			out.AddDirEntry(fuse.DirEntry{Name: "foo", Mode: 0, Ino: 1})
-			out.AddDirEntry(fuse.DirEntry{Name: "foo2", Mode: 0, Ino: 2})
-			out.AddDirEntry(fuse.DirEntry{Name: "foo3", Mode: 0, Ino: 3})
+			out.AddDirEntry(fuse.DirEntry{Name: "foo", Mode: 0100000, Ino: 1})
+			out.AddDirEntry(fuse.DirEntry{Name: "foo2", Mode: 0100000, Ino: 2})
+			out.AddDirEntry(fuse.DirEntry{Name: "foo3foo3", Mode: 0100000, Ino: 3})
+			out.AddDirEntry(fuse.DirEntry{Name: "foo4", Mode: 0100000, Ino: 4})
 			return fuse.OK
 		})
 
@@ -44,8 +45,9 @@ func TestReadDdir(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, []*pb.DirEntry{
-		{Name: []byte("foo"), Mode: 0, Ino: 1},
-		{Name: []byte("foo2"), Mode: 0, Ino: 2},
-		{Name: []byte("foo3"), Mode: 0, Ino: 3},
+		{Name: []byte("foo"), Mode: 0100000, Ino: 1},
+		{Name: []byte("foo2"), Mode: 0100000, Ino: 2},
+		{Name: []byte("foo3foo3"), Mode: 0100000, Ino: 3},
+		{Name: []byte("foo4"), Mode: 0100000, Ino: 4},
 	}, res.Entries)
 }

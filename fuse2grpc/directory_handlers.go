@@ -151,7 +151,9 @@ func (s *server) doReadDir(
 		dirEntry := &pb.DirEntry{Mode: typeToMode(e.Typ), Ino: e.Ino, Name: buf[pos+direntSize : pos+direntSize+e.NameLen]}
 		batch = append(batch, dirEntry)
 		batchSize += delta
-		padding := (8 - e.NameLen&7)
+		// fuse.DirEntryList.Add()
+		// padding := (8 - len(name)&7) & 7
+		padding := (8 - e.NameLen&7) & 7
 		pos += padding + direntSize + e.NameLen
 	}
 	if len(batch) == 0 {
