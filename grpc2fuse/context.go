@@ -21,13 +21,12 @@ import (
 	"sync"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
+	log "github.com/sirupsen/logrus"
 )
 
 type fuseContext struct {
 	context.Context
-	header   *fuse.InHeader
-	canceled bool
-	cancel   <-chan struct{}
+	header *fuse.InHeader
 }
 
 var contextPool = sync.Pool{
@@ -38,29 +37,19 @@ var contextPool = sync.Pool{
 
 func newContext(cancel <-chan struct{}, header *fuse.InHeader) *fuseContext {
 	ctx := contextPool.Get().(*fuseContext)
-	ctx.Context = context.Background()
-	ctx.canceled = false
-	ctx.cancel = cancel
+
+	c, cancelFunc := context.WithCancel(context.Background())
+
+	ctx.Context = c
 	ctx.header = header
+	go func() {
+		<-cancel
+		cancelFunc()
+		log.Debugf("ino %v context done", header.NodeId)
+	}()
 	return ctx
 }
 
 func releaseContext(ctx *fuseContext) {
 	contextPool.Put(ctx)
-}
-
-func (c *fuseContext) Cancel() {
-	c.canceled = true
-}
-
-func (c *fuseContext) Canceled() bool {
-	if c.canceled {
-		return true
-	}
-	select {
-	case <-c.cancel:
-		return true
-	default:
-		return false
-	}
 }
