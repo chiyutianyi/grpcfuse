@@ -41,10 +41,7 @@ func (s *server) Create(ctx context.Context, req *pb.CreateRequest) (*pb.CreateR
 	}).Debug("Create")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Create(ch, &fuse.CreateIn{InHeader: header, Flags: req.Flags, Mode: req.Mode}, req.Name, &out)
+	st := s.fs.Create(ctx.Done(), &fuse.CreateIn{InHeader: header, Flags: req.Flags, Mode: req.Mode}, req.Name, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
 	}
@@ -74,10 +71,7 @@ func (s *server) Open(ctx context.Context, req *pb.OpenRequest) (*pb.OpenRespons
 	}).Debug("Open")
 	toFuseInHeader(req.OpenIn.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Open(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
+	st := s.fs.Open(ctx.Done(), &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Open not implemented")
 	}
@@ -101,8 +95,6 @@ func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) e
 		batch  []byte
 	)
 	ctx := stream.Context()
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
 
 	grpc_logrus.Extract(ctx).WithFields(log.Fields{
 		"nodeId":    req.ReadIn.Header.NodeId,
@@ -116,7 +108,7 @@ func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) e
 	buf := s.buffers.AllocBuffer(req.ReadIn.Size)
 	defer s.buffers.FreeBuffer(buf)
 
-	res, st := s.fs.Read(ch,
+	res, st := s.fs.Read(ctx.Done(),
 		&fuse.ReadIn{
 			InHeader:  header,
 			Fh:        req.ReadIn.Fh,
@@ -181,10 +173,7 @@ func (s *server) Lseek(ctx context.Context, req *pb.LseekRequest) (*pb.LseekResp
 	}).Debug("Lseek")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Lseek(ch, &fuse.LseekIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Whence: req.Whence, Padding: req.Padding}, &out)
+	st := s.fs.Lseek(ctx.Done(), &fuse.LseekIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Whence: req.Whence, Padding: req.Padding}, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Lseek not implemented")
 	}

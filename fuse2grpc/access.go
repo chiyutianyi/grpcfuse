@@ -37,10 +37,7 @@ func (s *server) Access(ctx context.Context, req *pb.AccessRequest) (*pb.AccessR
 	}).Debug("Access")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Access(ch, &fuse.AccessIn{InHeader: header, Mask: req.Mask, Padding: req.Padding})
+	st := s.fs.Access(ctx.Done(), &fuse.AccessIn{InHeader: header, Mask: req.Mask, Padding: req.Padding})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Access not implemented")
 	}

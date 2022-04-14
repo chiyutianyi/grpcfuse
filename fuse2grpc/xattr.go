@@ -39,10 +39,7 @@ func (s *server) GetXAttr(ctx context.Context, req *pb.GetXAttrRequest) (*pb.Get
 	}).Debug("GetXAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	sz, st := s.fs.GetXAttr(ch, &header, req.Attr, req.Dest)
+	sz, st := s.fs.GetXAttr(ctx.Done(), &header, req.Attr, req.Dest)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method GetXAttr not implemented")
 	}
@@ -59,10 +56,7 @@ func (s *server) ListXAttr(ctx context.Context, req *pb.ListXAttrRequest) (*pb.L
 	}).Debug("ListXAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	sz, st := s.fs.ListXAttr(ch, &header, req.Dest)
+	sz, st := s.fs.ListXAttr(ctx.Done(), &header, req.Dest)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method ListXAttr not implemented")
 	}
@@ -79,10 +73,7 @@ func (s *server) RemoveXAttr(ctx context.Context, req *pb.RemoveXAttrRequest) (*
 	}).Debug("RemoveXAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.RemoveXAttr(ch, &header, req.Attr)
+	st := s.fs.RemoveXAttr(ctx.Done(), &header, req.Attr)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method RemoveXAttr not implemented")
 	}

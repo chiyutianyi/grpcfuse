@@ -40,10 +40,7 @@ func (s *server) Fsync(ctx context.Context, req *pb.FsyncRequest) (*pb.FsyncResp
 	}).Debug("Fsync")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Fsync(ch, &fuse.FsyncIn{InHeader: header, Fh: req.Fh, FsyncFlags: req.FsyncFlags, Padding: req.Padding})
+	st := s.fs.Fsync(ctx.Done(), &fuse.FsyncIn{InHeader: header, Fh: req.Fh, FsyncFlags: req.FsyncFlags, Padding: req.Padding})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Fsync not implemented")
 	}

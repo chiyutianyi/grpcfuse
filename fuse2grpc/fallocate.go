@@ -42,10 +42,7 @@ func (s *server) Fallocate(ctx context.Context, req *pb.FallocateRequest) (*pb.F
 	}).Debug("Fallocate")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Fallocate(ch, &fuse.FallocateIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Length: req.Length, Mode: req.Mode, Padding: req.Padding})
+	st := s.fs.Fallocate(ctx.Done(), &fuse.FallocateIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Length: req.Length, Mode: req.Mode, Padding: req.Padding})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Fallocate not implemented")
 	}

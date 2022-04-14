@@ -39,10 +39,7 @@ func (s *server) Lookup(ctx context.Context, req *pb.LookupRequest) (*pb.LookupR
 	}).Debug("Lookup")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Lookup(ch, &header, req.Name, &out)
+	st := s.fs.Lookup(ctx.Done(), &header, req.Name, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Lookup not implemented")
 	}

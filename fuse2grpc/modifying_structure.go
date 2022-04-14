@@ -41,10 +41,7 @@ func (s *server) Mkdir(ctx context.Context, req *pb.MkdirRequest) (*pb.MkdirResp
 	}).Debug("Mknod")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Mkdir(ch, &fuse.MkdirIn{InHeader: header, Mode: req.Mode, Umask: req.Umask}, req.Name, &out)
+	st := s.fs.Mkdir(ctx.Done(), &fuse.MkdirIn{InHeader: header, Mode: req.Mode, Umask: req.Umask}, req.Name, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Mkdir not implemented")
 	}
@@ -61,10 +58,7 @@ func (s *server) Unlink(ctx context.Context, req *pb.UnlinkRequest) (*pb.UnlinkR
 	}).Debug("Unlink")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Unlink(ch, &header, req.Name)
+	st := s.fs.Unlink(ctx.Done(), &header, req.Name)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Unlink not implemented")
 	}
@@ -81,10 +75,7 @@ func (s *server) Rmdir(ctx context.Context, req *pb.RmdirRequest) (*pb.RmdirResp
 	}).Debug("Rmdir")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Rmdir(ch, &header, req.Name)
+	st := s.fs.Rmdir(ctx.Done(), &header, req.Name)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Rmdir not implemented")
 	}
@@ -104,10 +95,7 @@ func (s *server) Rename(ctx context.Context, req *pb.RenameRequest) (*pb.RenameR
 	}).Debug("Rename")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Rename(ch, &fuse.RenameIn{InHeader: header, Newdir: req.Newdir, Flags: req.Flags, Padding: req.Padding}, req.OldName, req.NewName)
+	st := s.fs.Rename(ctx.Done(), &fuse.RenameIn{InHeader: header, Newdir: req.Newdir, Flags: req.Flags, Padding: req.Padding}, req.OldName, req.NewName)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Rename not implemented")
 	}

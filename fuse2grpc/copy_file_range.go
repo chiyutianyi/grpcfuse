@@ -44,10 +44,7 @@ func (s *server) CopyFileRange(ctx context.Context, req *pb.CopyFileRangeRequest
 	}).Debug("CopyFileRange")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	writen, st := s.fs.CopyFileRange(ch, &fuse.CopyFileRangeIn{InHeader: header, FhIn: req.FhIn, OffIn: req.OffIn, NodeIdOut: req.NodeIdOut, FhOut: req.FhOut, OffOut: req.OffOut, Len: req.Len, Flags: req.Flags})
+	writen, st := s.fs.CopyFileRange(ctx.Done(), &fuse.CopyFileRangeIn{InHeader: header, FhIn: req.FhIn, OffIn: req.OffIn, NodeIdOut: req.NodeIdOut, FhOut: req.FhOut, OffOut: req.OffOut, Len: req.Len, Flags: req.Flags})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method CopyFileRange not implemented")
 	}

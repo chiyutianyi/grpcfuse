@@ -48,10 +48,7 @@ func (s *server) GetLk(ctx context.Context, req *pb.LkRequest) (*pb.GetLkRespons
 	}).Debug("GetLk")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.GetLk(ch,
+	st := s.fs.GetLk(ctx.Done(),
 		&fuse.LkIn{
 			InHeader: header,
 			Fh:       req.Fh,
@@ -100,10 +97,7 @@ func (s *server) doSetLk(
 	}).Debug(funcName)
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := fn(ch,
+	st := fn(ctx.Done(),
 		&fuse.LkIn{
 			InHeader: header,
 			Fh:       req.Fh,

@@ -40,10 +40,7 @@ func (s *server) Link(ctx context.Context, req *pb.LinkRequest) (*pb.LinkRespons
 	}).Debug("Link")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Link(ch, &fuse.LinkIn{InHeader: header, Oldnodeid: req.Oldnodeid}, req.Filename, &out)
+	st := s.fs.Link(ctx.Done(), &fuse.LinkIn{InHeader: header, Oldnodeid: req.Oldnodeid}, req.Filename, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Link not implemented")
 	}
@@ -62,10 +59,7 @@ func (s *server) Symlink(ctx context.Context, req *pb.SymlinkRequest) (*pb.Symli
 	}).Debug("Symlink")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Symlink(ch, &header, req.PointedTo, req.LinkName, &out)
+	st := s.fs.Symlink(ctx.Done(), &header, req.PointedTo, req.LinkName, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Symlink not implemented")
 	}
@@ -81,10 +75,7 @@ func (s *server) Readlink(ctx context.Context, req *pb.ReadlinkRequest) (*pb.Rea
 	}).Debug("Readlink")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	out, st := s.fs.Readlink(ch, &header)
+	out, st := s.fs.Readlink(ctx.Done(), &header)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Readlink not implemented")
 	}

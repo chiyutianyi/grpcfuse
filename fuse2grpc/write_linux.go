@@ -42,10 +42,7 @@ func (s *server) Write(ctx context.Context, req *pb.WriteRequest) (*pb.WriteResp
 	}).Debug("Write")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	writen, st := s.fs.Write(ch, &fuse.WriteIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Size: req.Size, WriteFlags: req.WriteFlags, LockOwner: req.LockOwner}, req.Data)
+	writen, st := s.fs.Write(ctx.Done(), &fuse.WriteIn{InHeader: header, Fh: req.Fh, Offset: req.Offset, Size: req.Size, WriteFlags: req.WriteFlags, LockOwner: req.LockOwner}, req.Data)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Write not implemented")
 	}

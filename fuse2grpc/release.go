@@ -40,11 +40,9 @@ func (s *server) Release(ctx context.Context, req *pb.ReleaseRequest) (*emptypb.
 		"releaseFlags": req.ReleaseFlags,
 		"lockOwner":    req.LockOwner,
 	}).Debug("Release")
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
 
 	toFuseInHeader(req.Header, &header)
-	s.fs.Release(ch, &fuse.ReleaseIn{InHeader: header, Fh: req.Fh, Flags: req.Flags, ReleaseFlags: req.ReleaseFlags, LockOwner: req.LockOwner})
+	s.fs.Release(ctx.Done(), &fuse.ReleaseIn{InHeader: header, Fh: req.Fh, Flags: req.Flags, ReleaseFlags: req.ReleaseFlags, LockOwner: req.LockOwner})
 	return &emptypb.Empty{}, nil
 }
 
@@ -61,10 +59,7 @@ func (s *server) Flush(ctx context.Context, req *pb.FlushRequest) (*pb.FlushResp
 	}).Debug("OpenDir")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Flush(ch, &fuse.FlushIn{InHeader: header, Fh: req.Fh, Unused: req.Unused, Padding: req.Padding, LockOwner: req.LockOwner})
+	st := s.fs.Flush(ctx.Done(), &fuse.FlushIn{InHeader: header, Fh: req.Fh, Unused: req.Unused, Padding: req.Padding, LockOwner: req.LockOwner})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Flush not implemented")
 	}

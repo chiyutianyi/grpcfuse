@@ -41,10 +41,7 @@ func (s *server) Mknod(ctx context.Context, req *pb.MknodRequest) (*pb.MknodResp
 	}).Debug("Mknod")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.Mknod(ch, &fuse.MknodIn{InHeader: header, Mode: req.Mode, Rdev: req.Rdev}, req.Name, &out)
+	st := s.fs.Mknod(ctx.Done(), &fuse.MknodIn{InHeader: header, Mode: req.Mode, Rdev: req.Rdev}, req.Name, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method Mknod not implemented")
 	}

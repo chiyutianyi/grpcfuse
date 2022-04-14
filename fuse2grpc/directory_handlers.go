@@ -43,10 +43,7 @@ func (s *server) OpenDir(ctx context.Context, req *pb.OpenDirRequest) (*pb.OpenD
 	}).Debug("OpenDir")
 	toFuseInHeader(req.OpenIn.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.OpenDir(ch, &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
+	st := s.fs.OpenDir(ctx.Done(), &fuse.OpenIn{InHeader: header, Flags: req.OpenIn.Flags, Mode: req.OpenIn.Mode}, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method OpenDir not implemented")
 	}
@@ -91,10 +88,7 @@ func (s *server) doReadDir(
 
 	out := fuse.NewDirEntryList(buf, req.ReadIn.Offset)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := reader(ch,
+	st := reader(ctx.Done(),
 		&fuse.ReadIn{
 			InHeader:  header,
 			Fh:        req.ReadIn.Fh,
@@ -203,10 +197,7 @@ func (s *server) FsyncDir(ctx context.Context, req *pb.FsyncRequest) (*pb.FsyncR
 	}).Debug("FsyncDir")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.FsyncDir(ch, &fuse.FsyncIn{InHeader: header, Fh: req.Fh, FsyncFlags: req.FsyncFlags, Padding: req.Padding})
+	st := s.fs.FsyncDir(ctx.Done(), &fuse.FsyncIn{InHeader: header, Fh: req.Fh, FsyncFlags: req.FsyncFlags, Padding: req.Padding})
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method FsyncDir not implemented")
 	}

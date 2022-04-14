@@ -38,9 +38,7 @@ func (s *server) StatFs(ctx context.Context, req *pb.StatfsRequest) (*pb.StatfsR
 	}).Debug("StatFs")
 	toFuseInHeader(req.Input, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-	st := s.fs.StatFs(ch, &header, &out)
+	st := s.fs.StatFs(ctx.Done(), &header, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method StatFS not implemented")
 	}

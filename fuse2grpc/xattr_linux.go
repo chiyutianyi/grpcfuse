@@ -40,10 +40,7 @@ func (s *server) SetXAttr(ctx context.Context, req *pb.SetXAttrRequest) (*pb.Set
 	}).Debug("SetXAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.SetXAttr(ch, &fuse.SetXAttrIn{InHeader: header, Size: req.Size, Flags: req.Flags}, req.Attr, req.Data)
+	st := s.fs.SetXAttr(ctx.Done(), &fuse.SetXAttrIn{InHeader: header, Size: req.Size, Flags: req.Flags}, req.Attr, req.Data)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method GetXAttr not implemented")
 	}

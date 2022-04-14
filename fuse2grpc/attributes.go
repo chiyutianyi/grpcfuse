@@ -38,10 +38,7 @@ func (s *server) GetAttr(ctx context.Context, req *pb.GetAttrRequest) (*pb.GetAt
 	}).Debug("GetAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.GetAttr(ch, &fuse.GetAttrIn{InHeader: header}, &out)
+	st := s.fs.GetAttr(ctx.Done(), &fuse.GetAttrIn{InHeader: header}, &out)
 	if st == fuse.ENOSYS {
 		return nil, status.Errorf(codes.Unimplemented, "method GetAttr not implemented")
 	}
@@ -68,10 +65,7 @@ func (s *server) SetAttr(ctx context.Context, req *pb.SetAttrRequest) (*pb.SetAt
 	}).Debug("SetAttr")
 	toFuseInHeader(req.Header, &header)
 
-	ch := newCancel(ctx)
-	defer releaseCancel(ch)
-
-	st := s.fs.SetAttr(ch,
+	st := s.fs.SetAttr(ctx.Done(),
 		&fuse.SetAttrIn{
 			SetAttrInCommon: fuse.SetAttrInCommon{
 				InHeader:  header,
