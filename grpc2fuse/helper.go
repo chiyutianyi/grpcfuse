@@ -92,9 +92,12 @@ func dealGrpcError(method string, err error) fuse.Status {
 		return fuse.OK
 	}
 	if st, ok := status.FromError(err); ok {
-		if st.Code() == codes.Unimplemented {
+		switch st.Code() {
+		case codes.Unimplemented:
 			log.Warnf("%s unimplemented", method)
 			return fuse.ENOSYS
+		case codes.Canceled:
+			return fuse.EINTR
 		}
 	}
 	log.Errorf("%s: %v", method, err)
