@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Create(cancel <-chan struct{}, input *fuse.CreateIn, name string, out *fuse.CreateOut) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Create(ctx, &pb.CreateRequest{
 		Header: toPbHeader(&input.InHeader),

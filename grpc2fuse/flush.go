@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Flush(cancel <-chan struct{}, input *fuse.FlushIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Flush(ctx, &pb.FlushRequest{
 		Header:    toPbHeader(&input.InHeader),

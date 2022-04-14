@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) GetXAttr(cancel <-chan struct{}, header *fuse.InHeader, attr string, dest []byte) (sz uint32, code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.GetXAttr(ctx, &pb.GetXAttrRequest{
 		Header: toPbHeader(header),
@@ -39,8 +38,7 @@ func (fs *fileSystem) GetXAttr(cancel <-chan struct{}, header *fuse.InHeader, at
 }
 
 func (fs *fileSystem) ListXAttr(cancel <-chan struct{}, header *fuse.InHeader, dest []byte) (uint32, fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.ListXAttr(ctx, &pb.ListXAttrRequest{
 		Header: toPbHeader(header),
@@ -54,8 +52,7 @@ func (fs *fileSystem) ListXAttr(cancel <-chan struct{}, header *fuse.InHeader, d
 }
 
 func (fs *fileSystem) RemoveXAttr(cancel <-chan struct{}, header *fuse.InHeader, attr string) (code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.RemoveXAttr(ctx, &pb.RemoveXAttrRequest{
 		Header: toPbHeader(header),

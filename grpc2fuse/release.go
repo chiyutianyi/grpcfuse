@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Release(cancel <-chan struct{}, in *fuse.ReleaseIn) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	if _, err := fs.client.Release(ctx, &pb.ReleaseRequest{
 		Header:       toPbHeader(&in.InHeader),

@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Fsync(cancel <-chan struct{}, input *fuse.FsyncIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Fsync(ctx, &pb.FsyncRequest{
 		Header:     toPbHeader(&input.InHeader),

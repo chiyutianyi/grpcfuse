@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) CopyFileRange(cancel <-chan struct{}, input *fuse.CopyFileRangeIn) (written uint32, code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.CopyFileRange(ctx, &pb.CopyFileRangeRequest{
 		Header:    toPbHeader(&input.InHeader),

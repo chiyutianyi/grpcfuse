@@ -25,8 +25,7 @@ import (
 )
 
 func (fs *fileSystem) Open(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Open(ctx, &pb.OpenRequest{
 		OpenIn: &pb.OpenIn{
@@ -48,8 +47,7 @@ func (fs *fileSystem) Open(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.Op
 }
 
 func (fs *fileSystem) Read(cancel <-chan struct{}, input *fuse.ReadIn, buf []byte) (fuse.ReadResult, fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	stream, err := fs.client.Read(ctx, &pb.ReadRequest{ReadIn: toPbReadIn(input)}, fs.opts...)
 
@@ -78,8 +76,7 @@ func (fs *fileSystem) Read(cancel <-chan struct{}, input *fuse.ReadIn, buf []byt
 }
 
 func (fs *fileSystem) Lseek(cancel <-chan struct{}, in *fuse.LseekIn, out *fuse.LseekOut) fuse.Status {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Lseek(ctx,
 		&pb.LseekRequest{

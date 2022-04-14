@@ -22,8 +22,7 @@ import (
 )
 
 func (fs *fileSystem) GetAttr(cancel <-chan struct{}, in *fuse.GetAttrIn, out *fuse.AttrOut) (code fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.GetAttr(ctx, &pb.GetAttrRequest{
 		Header: toPbHeader(&in.InHeader),
@@ -41,8 +40,7 @@ func (fs *fileSystem) GetAttr(cancel <-chan struct{}, in *fuse.GetAttrIn, out *f
 }
 
 func (fs *fileSystem) SetAttr(cancel <-chan struct{}, in *fuse.SetAttrIn, out *fuse.AttrOut) (code fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.SetAttr(ctx, &pb.SetAttrRequest{
 		Header:    toPbHeader(&in.InHeader),

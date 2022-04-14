@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Fallocate(cancel <-chan struct{}, input *fuse.FallocateIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Fallocate(ctx, &pb.FallocateRequest{
 		Header:  toPbHeader(&input.InHeader),

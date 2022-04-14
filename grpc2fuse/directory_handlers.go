@@ -27,8 +27,7 @@ import (
 )
 
 func (fs *fileSystem) OpenDir(cancel <-chan struct{}, in *fuse.OpenIn, out *fuse.OpenOut) (status fuse.Status) {
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.OpenDir(ctx, &pb.OpenDirRequest{
 		OpenIn: &pb.OpenIn{
@@ -60,8 +59,7 @@ func (fs *fileSystem) doReadDir(
 	funcName string,
 ) fuse.Status {
 	var de fuse.DirEntry
-	ctx := newContext(cancel, &in.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	stream := reader(ctx, &pb.ReadDirRequest{ReadIn: toPbReadIn(in)})
 
@@ -139,8 +137,7 @@ func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
 }
 
 func (fs *fileSystem) FsyncDir(cancel <-chan struct{}, input *fuse.FsyncIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.FsyncDir(ctx, &pb.FsyncRequest{
 		Header:     toPbHeader(&input.InHeader),

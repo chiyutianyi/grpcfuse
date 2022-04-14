@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Link(cancel <-chan struct{}, input *fuse.LinkIn, filename string, out *fuse.EntryOut) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Link(ctx, &pb.LinkRequest{
 		Header:    toPbHeader(&input.InHeader),
@@ -44,8 +43,7 @@ func (fs *fileSystem) Link(cancel <-chan struct{}, input *fuse.LinkIn, filename 
 }
 
 func (fs *fileSystem) Symlink(cancel <-chan struct{}, header *fuse.InHeader, pointedTo string, linkName string, out *fuse.EntryOut) (code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Symlink(ctx, &pb.SymlinkRequest{
 		Header:    toPbHeader(header),
@@ -65,8 +63,7 @@ func (fs *fileSystem) Symlink(cancel <-chan struct{}, header *fuse.InHeader, poi
 }
 
 func (fs *fileSystem) Readlink(cancel <-chan struct{}, header *fuse.InHeader) (out []byte, code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Readlink(ctx, &pb.ReadlinkRequest{
 		Header: toPbHeader(header),

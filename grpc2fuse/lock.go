@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) GetLk(cancel <-chan struct{}, input *fuse.LkIn, out *fuse.LkOut) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.GetLk(ctx, &pb.LkRequest{
 		Header: toPbHeader(&input.InHeader),
@@ -54,8 +53,7 @@ func (fs *fileSystem) GetLk(cancel <-chan struct{}, input *fuse.LkIn, out *fuse.
 }
 
 func (fs *fileSystem) SetLk(cancel <-chan struct{}, input *fuse.LkIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.SetLk(ctx, &pb.LkRequest{
 		Header: toPbHeader(&input.InHeader),
@@ -79,8 +77,7 @@ func (fs *fileSystem) SetLk(cancel <-chan struct{}, input *fuse.LkIn) (code fuse
 }
 
 func (fs *fileSystem) SetLkw(cancel <-chan struct{}, input *fuse.LkIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.SetLkw(ctx, &pb.LkRequest{
 		Header: toPbHeader(&input.InHeader),

@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Mknod(cancel <-chan struct{}, input *fuse.MknodIn, name string, out *fuse.EntryOut) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Mknod(ctx, &pb.MknodRequest{
 		Header: toPbHeader(&input.InHeader),

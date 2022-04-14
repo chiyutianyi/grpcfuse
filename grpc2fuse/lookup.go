@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Lookup(cancel <-chan struct{}, header *fuse.InHeader, name string, out *fuse.EntryOut) (status fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Lookup(ctx, &pb.LookupRequest{
 		Header: toPbHeader(header),

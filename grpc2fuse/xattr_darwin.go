@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) SetXAttr(cancel <-chan struct{}, input *fuse.SetXAttrIn, attr string, data []byte) fuse.Status {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.SetXAttr(ctx, &pb.SetXAttrRequest{
 		Header:   toPbHeader(&input.InHeader),

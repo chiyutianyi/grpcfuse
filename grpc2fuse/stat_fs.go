@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fuse.StatfsOut) (code fuse.Status) {
-	ctx := newContext(cancel, in)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.StatFs(ctx, &pb.StatfsRequest{
 		Input: toPbHeader(in),

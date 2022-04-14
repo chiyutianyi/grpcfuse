@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Write(cancel <-chan struct{}, input *fuse.WriteIn, data []byte) (written uint32, code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Write(ctx, &pb.WriteRequest{
 		Header:     toPbHeader(&input.InHeader),

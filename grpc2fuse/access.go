@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Access(cancel <-chan struct{}, input *fuse.AccessIn) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Access(ctx, &pb.AccessRequest{
 		Header:  toPbHeader(&input.InHeader),

@@ -18,38 +18,17 @@ package grpc2fuse
 
 import (
 	"context"
-	"sync"
-
-	"github.com/hanwen/go-fuse/v2/fuse"
-	log "github.com/sirupsen/logrus"
 )
 
 type fuseContext struct {
 	context.Context
-	header *fuse.InHeader
+	cancel <-chan struct{}
 }
 
-var contextPool = sync.Pool{
-	New: func() interface{} {
-		return &fuseContext{}
-	},
+func newContext(cancel <-chan struct{}) *fuseContext {
+	return &fuseContext{Context: context.Background(), cancel: cancel}
 }
 
-func newContext(cancel <-chan struct{}, header *fuse.InHeader) *fuseContext {
-	ctx := contextPool.Get().(*fuseContext)
+func (ctx *fuseContext) Done() <-chan struct{} { return ctx.cancel }
 
-	c, cancelFunc := context.WithCancel(context.Background())
-
-	ctx.Context = c
-	ctx.header = header
-	go func() {
-		<-cancel
-		cancelFunc()
-		log.Debugf("ino %v context done", header.NodeId)
-	}()
-	return ctx
-}
-
-func releaseContext(ctx *fuseContext) {
-	contextPool.Put(ctx)
-}
+func (ctx *fuseContext) Err() error { return context.Canceled }

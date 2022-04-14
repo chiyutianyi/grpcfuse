@@ -23,8 +23,7 @@ import (
 )
 
 func (fs *fileSystem) Mkdir(cancel <-chan struct{}, input *fuse.MkdirIn, name string, out *fuse.EntryOut) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Mkdir(ctx, &pb.MkdirRequest{
 		Header: toPbHeader(&input.InHeader),
@@ -45,8 +44,7 @@ func (fs *fileSystem) Mkdir(cancel <-chan struct{}, input *fuse.MkdirIn, name st
 }
 
 func (fs *fileSystem) Unlink(cancel <-chan struct{}, header *fuse.InHeader, name string) (code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Unlink(ctx, &pb.UnlinkRequest{
 		Header: toPbHeader(header),
@@ -60,8 +58,7 @@ func (fs *fileSystem) Unlink(cancel <-chan struct{}, header *fuse.InHeader, name
 }
 
 func (fs *fileSystem) Rmdir(cancel <-chan struct{}, header *fuse.InHeader, name string) (code fuse.Status) {
-	ctx := newContext(cancel, header)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Rmdir(ctx, &pb.RmdirRequest{
 		Header: toPbHeader(header),
@@ -75,8 +72,7 @@ func (fs *fileSystem) Rmdir(cancel <-chan struct{}, header *fuse.InHeader, name 
 }
 
 func (fs *fileSystem) Rename(cancel <-chan struct{}, input *fuse.RenameIn, oldName string, newName string) (code fuse.Status) {
-	ctx := newContext(cancel, &input.InHeader)
-	defer releaseContext(ctx)
+	ctx := newContext(cancel)
 
 	res, err := fs.client.Rename(ctx, &pb.RenameRequest{
 		Header:  toPbHeader(&input.InHeader),
