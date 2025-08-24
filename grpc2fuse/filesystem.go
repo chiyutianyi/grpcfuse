@@ -18,10 +18,14 @@ package grpc2fuse
 
 import (
 	"context"
+	"fmt"
+	"syscall"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
@@ -30,27 +34,80 @@ const (
 	defaultName = "grpcfuse"
 )
 
-type fileSystem struct {
+// FileSystem represents a gRPC-based FUSE filesystem client
+type FileSystem struct {
 	fuse.RawFileSystem
 
 	client pb.RawFileSystemClient
 	opts   []grpc.CallOption
+	logger *log.Entry
 }
 
-// NewFileSystem creates a new file system.
-func NewFileSystem(client pb.RawFileSystemClient, opts ...grpc.CallOption) *fileSystem {
-	return &fileSystem{
+// NewFileSystem creates a new FileSystem instance with the given gRPC client
+func NewFileSystem(client pb.RawFileSystemClient, opts ...grpc.CallOption) *FileSystem {
+	return &FileSystem{
 		RawFileSystem: fuse.NewDefaultRawFileSystem(),
 		client:        client,
 		opts:          opts,
+		logger:        log.WithField("component", "grpc2fuse"),
 	}
 }
 
-func (fs *fileSystem) String() string {
-	res, err := fs.client.String(context.TODO(), &pb.StringRequest{}, fs.opts...)
+// String returns the filesystem name
+func (fs *FileSystem) String() string {
+	ctx := context.Background()
+	res, err := fs.client.String(ctx, &pb.StringRequest{}, fs.opts...)
 	if err != nil {
-		log.Errorf("String: %v", err)
+		fs.logger.WithError(err).Warn("Failed to get filesystem name, using default")
 		return defaultName
 	}
 	return res.Value
+}
+
+// SetLogger sets a custom logger for the filesystem
+func (fs *FileSystem) SetLogger(logger *log.Entry) {
+	fs.logger = logger
+}
+
+// GetClient returns the underlying gRPC client
+func (fs *FileSystem) GetClient() pb.RawFileSystemClient {
+	return fs.client
+}
+
+// GetOptions returns the gRPC call options
+func (fs *FileSystem) GetOptions() []grpc.CallOption {
+	return fs.opts
+}
+
+// handleGRPCError converts gRPC errors to appropriate FUSE errors
+func (fs *FileSystem) handleGRPCError(err error, operation string) syscall.Errno {
+	if err == nil {
+		return 0
+	}
+
+	fs.logger.WithError(err).WithField("operation", operation).Debug("gRPC operation failed")
+
+	st, ok := status.FromError(err)
+	if !ok {
+		fs.logger.WithError(err).WithField("operation", operation).Warn("Unknown error type")
+		return syscall.EIO
+	}
+
+	switch st.Code() {
+	case codes.NotFound:
+		return syscall.ENOENT
+	case codes.PermissionDenied:
+		return syscall.EACCES
+	case codes.InvalidArgument:
+		return syscall.EINVAL
+	case codes.ResourceExhausted:
+		return syscall.ENOMEM
+	case codes.Unavailable:
+		return syscall.EAGAIN
+	case codes.DeadlineExceeded:
+		return syscall.ETIMEDOUT
+	default:
+		fs.logger.WithError(err).WithField("operation", operation).Warn("Unhandled gRPC error")
+		return syscall.EIO
+	}
 }

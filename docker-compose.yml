@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  grpcfuse-server:
+    build: .
+    container_name: grpcfuse-server
+    ports:
+      - "8760:8760"
+    volumes:
+      - ./test-data:/mnt/grpcfuse:ro
+      - /dev/fuse:/dev/fuse
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - GRPCFUSE_LOG_LEVEL=debug
+    command: ["/app/bin/loopback", "/mnt/grpcfuse"]
+    networks:
+      - grpcfuse-net
+
+  grpcfuse-client:
+    build: .
+    container_name: grpcfuse-client
+    depends_on:
+      - grpcfuse-server
+    volumes:
+      - ./test-mount:/mnt/client:rw
+      - /dev/fuse:/dev/fuse
+    devices:
+      - /dev/fuse
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - GRPCFUSE_LOG_LEVEL=debug
+    command: ["/app/bin/client", "/mnt/client", "grpcfuse-server:8760"]
+    networks:
+      - grpcfuse-net
+
+  test-runner:
+    build: .
+    container_name: grpcfuse-test
+    depends_on:
+      - grpcfuse-server
+    volumes:
+      - .:/app:ro
+    working_dir: /app
+    environment:
+      - GOOS=linux
+      - GOARCH=amd64
+    command: ["make", "test"]
+    networks:
+      - grpcfuse-net
+
+networks:
+  grpcfuse-net:
+    driver: bridge
+
+volumes:
+  test-data:
+    driver: local
+  test-mount:
+    driver: local
