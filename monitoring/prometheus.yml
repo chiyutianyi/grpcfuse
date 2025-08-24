@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  - job_name: 'grpcfuse-server'
+    static_configs:
+      - targets: ['localhost:8760']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'grpcfuse-client'
+    static_configs:
+      - targets: ['localhost:8761']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 30s
+
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['localhost:8080']
+    scrape_interval: 30s

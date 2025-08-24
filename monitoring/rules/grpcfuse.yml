@@ -1,0 +1,72 @@
+groups:
+  - name: grpcfuse
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: rate(grpc_requests_total{grpc_code!="OK"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors per second"
+
+      # High latency alert
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(grpc_request_duration_seconds_bucket[5m])) > 1
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency detected"
+          description: "95th percentile latency is {{ $value }} seconds"
+
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes / process_heap_size_bytes) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # High CPU usage alert
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # File system operations alert
+      - alert: HighFileSystemOperations
+        expr: rate(fuse_operations_total[5m]) > 1000
+        for: 2m
+        labels:
+          severity: info
+        annotations:
+          summary: "High file system operation rate"
+          description: "File system operations per second: {{ $value }}"
+
+      # gRPC connection issues
+      - alert: GRPCConnectionIssues
+        expr: grpc_client_conn_failures_total > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "gRPC connection failures detected"
+          description: "{{ $value }} connection failures"
+
+      # Buffer pool exhaustion
+      - alert: BufferPoolExhaustion
+        expr: buffer_pool_allocations_total - buffer_pool_frees_total > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Buffer pool memory leak detected"
+          description: "{{ $value }} buffers not returned to pool"
