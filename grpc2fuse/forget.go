@@ -23,6 +23,6 @@ import (
 )
 
 func (fs *fileSystem) Forget(nodeid, nlookup uint64) {
-	_, err := fs.client.Forget(context.TODO(), &pb.ForgetRequest{Nodeid: nodeid, Nlookup: nlookup}, fs.opts...)
+	_, err := fs.client.Forget(context.Background(), &pb.ForgetRequest{Nodeid: nodeid, Nlookup: nlookup}, fs.opts...)
 	dealGrpcError("Forget", err)
 }

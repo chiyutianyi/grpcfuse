@@ -47,7 +47,7 @@ func NewFileSystem(client pb.RawFileSystemClient, opts ...grpc.CallOption) *file
 }
 
 func (fs *fileSystem) String() string {
-	res, err := fs.client.String(context.TODO(), &pb.StringRequest{}, fs.opts...)
+	res, err := fs.client.String(context.Background(), &pb.StringRequest{}, fs.opts...)
 	if err != nil {
 		log.Errorf("String: %v", err)
 		return defaultName
