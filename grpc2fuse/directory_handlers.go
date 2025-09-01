@@ -125,7 +125,7 @@ func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *
 }
 
 func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
-	if _, err := fs.client.ReleaseDir(context.TODO(), &pb.ReleaseRequest{
+	if _, err := fs.client.ReleaseDir(context.Background(), &pb.ReleaseRequest{
 		Header:       toPbHeader(&in.InHeader),
 		Fh:           in.Fh,
 		Flags:        in.Flags,

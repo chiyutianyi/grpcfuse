@@ -46,6 +46,7 @@ func (fs *fileSystem) StatFs(cancel <-chan struct{}, in *fuse.InHeader, out *fus
 	out.NameLen = res.NameLen
 	out.Frsize = res.Frsize
 	out.Padding = res.Padding
-	//TODO out.Spare = res.Spare
+	// 注意：Spare字段已弃用，在现代FUSE版本中不再使用
+	// out.Spare = res.Spare
 	return fuse.OK
 }
