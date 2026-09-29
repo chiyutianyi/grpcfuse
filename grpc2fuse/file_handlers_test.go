@@ -1,6 +1,7 @@
 package grpc2fuse_test
 
 import (
+	"errors"
 	"io"
 	"testing"
 
@@ -13,6 +14,38 @@ import (
 	"github.com/chiyutianyi/grpcfuse/mock"
 	"github.com/chiyutianyi/grpcfuse/pb"
 )
+
+func TestReadDirRPCError(t *testing.T) {
+	tests := []struct {
+		name string
+		call func(*mock.MockRawFileSystemClient, *fuse.ReadIn, *fuse.DirEntryList)
+	}{
+		{name: "ReadDir", call: func(client *mock.MockRawFileSystemClient, in *fuse.ReadIn, out *fuse.DirEntryList) {
+			fs := grpc2fuse.NewFileSystem(client)
+			require.Equal(t, fuse.EIO, fs.ReadDir(nil, in, out))
+		}},
+		{name: "ReadDirPlus", call: func(client *mock.MockRawFileSystemClient, in *fuse.ReadIn, out *fuse.DirEntryList) {
+			fs := grpc2fuse.NewFileSystem(client)
+			require.Equal(t, fuse.EIO, fs.ReadDirPlus(nil, in, out))
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			client := mock.NewMockRawFileSystemClient(ctrl)
+			in := &fuse.ReadIn{InHeader: TestInHeader}
+			out := fuse.NewDirEntryList(make([]byte, 4096), 0)
+
+			if tt.name == "ReadDir" {
+				client.EXPECT().ReadDir(gomock.Any(), gomock.Any()).Return(nil, errors.New("rpc failed"))
+			} else {
+				client.EXPECT().ReadDirPlus(gomock.Any(), gomock.Any()).Return(nil, errors.New("rpc failed"))
+			}
+			tt.call(client, in, out)
+		})
+	}
+}
 
 func TestRead(t *testing.T) {
 	ctrl := gomock.NewController(t)

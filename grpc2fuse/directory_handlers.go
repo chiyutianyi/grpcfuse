@@ -56,12 +56,17 @@ func (fs *fileSystem) doReadDir(
 	in *fuse.ReadIn,
 	out *fuse.DirEntryList,
 	reader func(ctx context.Context, in *pb.ReadDirRequest) RawFileSystem_ReadDirClient,
+	rpcErr *error,
 	funcName string,
 ) fuse.Status {
 	var de fuse.DirEntry
 	ctx := newContext(cancel)
 
 	stream := reader(ctx, &pb.ReadDirRequest{ReadIn: toPbReadIn(in)})
+	if *rpcErr != nil {
+		log.Errorf("%s: %v", funcName, *rpcErr)
+		return fuse.EIO
+	}
 
 	for {
 		res, err := stream.Recv()
@@ -97,12 +102,7 @@ func (fs *fileSystem) ReadDir(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse
 		return stream
 	}
 
-	if err != nil {
-		log.Errorf("ReadDir: %v", err)
-		return fuse.EIO
-	}
-
-	return fs.doReadDir(cancel, in, out, reader, "ReadDir")
+	return fs.doReadDir(cancel, in, out, reader, &err, "ReadDir")
 }
 
 func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *fuse.DirEntryList) fuse.Status {
@@ -116,12 +116,7 @@ func (fs *fileSystem) ReadDirPlus(cancel <-chan struct{}, in *fuse.ReadIn, out *
 		return stream
 	}
 
-	if err != nil {
-		log.Errorf("ReadDirPlus: %v", err)
-		return fuse.EIO
-	}
-
-	return fs.doReadDir(cancel, in, out, reader, "ReadDirPlus")
+	return fs.doReadDir(cancel, in, out, reader, &err, "ReadDirPlus")
 }
 
 func (fs *fileSystem) ReleaseDir(in *fuse.ReleaseIn) {
