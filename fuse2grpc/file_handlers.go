@@ -122,15 +122,13 @@ func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) e
 	}
 
 	if st != fuse.OK {
-		stream.Send(&pb.ReadResponse{Status: &pb.Status{Code: int32(st)}})
-		return nil
+		return stream.Send(&pb.ReadResponse{Status: &pb.Status{Code: int32(st)}})
 	}
 
 	data, st := res.Bytes(buf)
 
 	if st != fuse.OK {
-		stream.Send(&pb.ReadResponse{Status: &pb.Status{Code: int32(st)}})
-		return nil
+		return stream.Send(&pb.ReadResponse{Status: &pb.Status{Code: int32(st)}})
 	}
 
 	flushFunc := func() error {
@@ -149,15 +147,15 @@ func (s *server) Read(req *pb.ReadRequest, stream pb.RawFileSystem_ReadServer) e
 	for {
 		if pos+s.msgSizeThreshold >= res.Size() {
 			batch = data[pos:]
-			flushFunc()
-			break
+			return flushFunc()
 		}
 
 		batch = data[pos : pos+s.msgSizeThreshold]
 		pos += s.msgSizeThreshold
-		flushFunc()
+		if err := flushFunc(); err != nil {
+			return err
+		}
 	}
-	return nil
 }
 func (s *server) Lseek(ctx context.Context, req *pb.LseekRequest) (*pb.LseekResponse, error) {
 	var (
